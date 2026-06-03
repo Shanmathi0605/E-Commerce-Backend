@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 const { BadRequestError, NotAuthorizedError } = require('@ecommerce/common');
 const { emailVerifyPublisher, userRegisteredPublisher } = require('../events/publishers');
+const { sendMail } = require('../config/mailer');
 
 // Helper to generate JWT token
 const generateToken = (user) => {
@@ -54,6 +55,19 @@ const register = async (req, res) => {
     role: user.role
   });
 
+  // Send Welcome & Verification Email directly
+  const subject = 'Welcome to E-Commerce Marketplace!';
+  const text = `Welcome! Your registration was successful. Please verify your email using this 6-digit OTP code: ${verificationToken}`;
+  const html = `<h3>Welcome to E-Commerce Marketplace!</h3>
+                <p>Hi there,</p>
+                <p>Thank you for registering with us! Your registration was successful.</p>
+                <p>Please enter the following 6-digit OTP verification code to complete your signup:</p>
+                <h2 style="color: #4f46e5; letter-spacing: 2px;">${verificationToken}</h2>
+                <p>Have a great day!</p>`;
+  sendMail(user.email, subject, text, html).catch(err => {
+    console.error(`[Auth Service] Welcome email error: ${err.message}`);
+  });
+
   const token = generateToken(user);
   res.cookie('jwt', token, {
     httpOnly: true,
@@ -87,6 +101,17 @@ const login = async (req, res) => {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     maxAge: 24 * 60 * 60 * 1000
+  });
+
+  // Send Login notification email directly
+  const subject = 'New Login Detected';
+  const text = `Hello! A new login was detected on your E-Commerce Marketplace account at ${new Date().toLocaleString()}.`;
+  const html = `<h3>New Login Detected</h3>
+                <p>Hello,</p>
+                <p>We detected a new login to your account at <b>${new Date().toLocaleString()}</b>.</p>
+                <p>If this was you, you can safely ignore this email. If this wasn't you, please secure your account immediately by resetting your password.</p>`;
+  sendMail(user.email, subject, text, html).catch(err => {
+    console.error(`[Auth Service] Login email error: ${err.message}`);
   });
 
   res.status(200).send({ user, token });
@@ -129,8 +154,8 @@ const forgotPassword = async (req, res) => {
     throw new BadRequestError('No account with that email exists');
   }
 
-  // Generate random token
-  const resetToken = crypto.randomBytes(20).toString('hex');
+  // Generate random 6-digit numeric OTP for forgot password reset
+  const resetToken = Math.floor(100000 + Math.random() * 900000).toString();
   user.resetPasswordToken = resetToken;
   user.resetPasswordExpire = Date.now() + 3600000; // 1 hour
   await user.save();
@@ -142,7 +167,19 @@ const forgotPassword = async (req, res) => {
     type: 'reset-password'
   });
 
-  res.status(200).send({ message: 'Password reset link sent to email' });
+  // Send Forgot Password OTP Email directly
+  const subject = 'Password Reset OTP';
+  const text = `You requested a password reset. Use this 6-digit OTP code to complete the request: ${resetToken}`;
+  const html = `<h3>Password Reset OTP</h3>
+                <p>You requested a password reset. Please use the 6-digit OTP code below to reset your password:</p>
+                <h2 style="color: #ef4444; letter-spacing: 2px;">${resetToken}</h2>
+                <p>This code will expire in 1 hour.</p>
+                <p>If you did not request this, you can ignore this email.</p>`;
+  sendMail(user.email, subject, text, html).catch(err => {
+    console.error(`[Auth Service] Forgot password email error: ${err.message}`);
+  });
+
+  res.status(200).send({ message: 'Password reset OTP sent to email' });
 };
 
 // Reset Password update

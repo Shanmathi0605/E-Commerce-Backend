@@ -1,4 +1,7 @@
 const express = require('express');
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '../../../../.env') });
+require('dotenv').config();
 require('express-async-errors');
 const cookieParser = require('cookie-parser');
 const connectDB = require('./config/db');
