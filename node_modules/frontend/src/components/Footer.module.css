@@ -1,0 +1,29 @@
+.footer {
+  margin-top: 5rem;
+  padding: 3rem 2rem;
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--card-border);
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.links {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  margin-bottom: 1.5rem;
+  font-size: 0.9rem;
+}
+
+.linkItem {
+  transition: color var(--transition-fast);
+}
+
+.linkItem:hover {
+  color: var(--text-main);
+}
+
+.copyright {
+  font-weight: 300;
+}

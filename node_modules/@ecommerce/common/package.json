@@ -1,0 +1,12 @@
+{
+  "name": "@ecommerce/common",
+  "version": "1.0.0",
+  "main": "src/index.js",
+  "types": "src/index.js",
+  "dependencies": {
+    "express": "^4.19.2",
+    "express-validator": "^7.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "kafkajs": "^2.2.4"
+  }
+}

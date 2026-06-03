@@ -1,0 +1,33 @@
+{
+  "name": "e-commerce-marketplace",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "packages/common",
+    "packages/frontend",
+    "packages/services/*"
+  ],
+  "scripts": {
+    "bootstrap": "npm install",
+    "test": "npm run test --workspaces --if-present",
+    "gateway": "npm run dev --workspace=api-gateway",
+    "auth": "npm run dev --workspace=auth-service",
+    "user": "npm run dev --workspace=user-service",
+    "vendor": "npm run dev --workspace=vendor-service",
+    "product": "npm run dev --workspace=product-service",
+    "inventory": "npm run dev --workspace=inventory-service",
+    "cart": "npm run dev --workspace=cart-service",
+    "wishlist": "npm run dev --workspace=wishlist-service",
+    "order": "npm run dev --workspace=order-service",
+    "payment": "npm run dev --workspace=payment-service",
+    "review": "npm run dev --workspace=review-service",
+    "coupon": "npm run dev --workspace=coupon-service",
+    "notification": "npm run dev --workspace=notification-service",
+    "analytics": "npm run dev --workspace=analytics-service",
+    "recommendation": "npm run dev --workspace=recommendation-service",
+    "frontend": "npm run dev --workspace=frontend"
+  },
+  "dependencies": {
+    "express-async-errors": "^3.1.1"
+  }
+}
