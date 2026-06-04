@@ -1,4 +1,5 @@
 const express = require('express');
+require('express-async-errors');
 const cookieParser = require('cookie-parser');
 const connectDB = require('./config/db');
 const couponRoutes = require('./routes/coupon-routes');

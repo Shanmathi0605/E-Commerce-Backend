@@ -22,7 +22,7 @@ const start = async () => {
   await connectDB();
 
   // Start listening to Kafka events (User registered)
-  await startConsumers();
+  startConsumers(); // Non-blocking: runs in background, app starts regardless of Kafka status
 
   const PORT = process.env.PORT || 8002;
   app.listen(PORT, () => {

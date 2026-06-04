@@ -194,7 +194,7 @@ const ProductDetails = () => {
           </div>
 
           <div className={styles.price}>
-            ${selectedVariant?.price || product.price.toFixed(2)}
+            ₹{selectedVariant?.price || product.price.toFixed(2)}
           </div>
 
           <p className={styles.description}>{product.description}</p>

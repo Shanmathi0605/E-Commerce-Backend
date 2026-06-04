@@ -44,14 +44,34 @@ const createOrder = async (req, res) => {
   await order.save();
 
   // Publish ORDER_CREATED to Kafka (triggers inventory reservation and payment processing)
-  await orderCreatedPublisher.publish({
+  const eventPayload = {
     id: order._id,
     userId: order.userId,
+    userEmail: req.currentUser.email,
     items: order.items,
     totals: order.totals,
     paymentMethod: order.paymentMethod,
     shippingAddress: order.shippingAddress
-  });
+  };
+
+  try {
+    await orderCreatedPublisher.publish(eventPayload);
+  } catch (err) {
+    console.error(`[Kafka] Publish failed: ${err.message}. Falling back to REST API.`);
+  }
+
+  // Local/Dev Fallback: Call notification service REST API directly to dispatch email receipt
+  try {
+    const notificationServiceUrl = process.env.NOTIFICATION_SERVICE_URL || 'http://localhost:8012';
+    await fetch(`${notificationServiceUrl}/api/notifications/order-created`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(eventPayload)
+    });
+    console.log('[Order Service] Direct notification request dispatched to Notification Service.');
+  } catch (fetchErr) {
+    console.error('[Order Service] Direct notification request failed:', fetchErr.message);
+  }
 
   res.status(201).send(order);
 };

@@ -8,6 +8,10 @@
     "packages/services/*"
   ],
   "scripts": {
+    "dev:all": "npm run dev --workspaces --if-present --parallel",
+    "dev:core": "concurrently --raw \"npm run gateway\" \"npm run auth\" \"npm run user\" \"npm run vendor\" \"npm run frontend\"",
+    "dev:services": "concurrently --raw \"npm run product\" \"npm run inventory\" \"npm run cart\" \"npm run wishlist\" \"npm run order\" \"npm run payment\" \"npm run review\" \"npm run coupon\" \"npm run notification\" \"npm run analytics\" \"npm run recommendation\"",
+    "dev:concurrent": "concurrently --raw \"npm run gateway\" \"npm run auth\" \"npm run user\" \"npm run vendor\" \"npm run product\" \"npm run inventory\" \"npm run cart\" \"npm run wishlist\" \"npm run order\" \"npm run payment\" \"npm run review\" \"npm run coupon\" \"npm run notification\" \"npm run analytics\" \"npm run recommendation\" \"npm run frontend\"",
     "bootstrap": "npm install",
     "test": "npm run test --workspaces --if-present",
     "gateway": "npm run dev --workspace=api-gateway",
@@ -29,5 +33,8 @@
   },
   "dependencies": {
     "express-async-errors": "^3.1.1"
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.3"
   }
 }

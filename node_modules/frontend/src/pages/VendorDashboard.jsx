@@ -176,70 +176,20 @@ const VendorDashboard = () => {
   };
 
   if (loading) {
-    return <div style={{ textAlign: 'center', marginTop: '5rem' }}>Loading seller panel dashboards...</div>;
+    return <div style={{ textAlign: 'center', marginTop: '5rem', color: 'var(--text-muted)' }}>🌿 Loading seller panel...</div>;
   }
 
-  // If user is a seller but hasn't created a vendor store profile
-  if (!vendor) {
-    return (
-      <div className={styles.container}>
-        <div className={styles.formCard}>
-          <h2 className={styles.title}>Seller KYC Registration</h2>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '1rem' }}>
-            Submit your shop details and business identity documents. Once approved by the administrator, you can list products, manage warehouses, and track sales revenue.
-          </p>
-
-          <form onSubmit={handleKYCSubmit}>
-            <div className={styles.formGrid}>
-              <div className={styles.formGroup}>
-                <label className={styles.label}>Shop Name</label>
-                <input type="text" className={styles.input} required value={storeName} onChange={(e) => setStoreName(e.target.value)} />
-              </div>
-              <div className={styles.formGroup}>
-                <label className={styles.label}>Tax / GSTIN Number</label>
-                <input type="text" className={styles.input} required value={taxId} onChange={(e) => setTaxId(e.target.value)} />
-              </div>
-              <div className={styles.formGroup}>
-                <label className={styles.label}>Business Registration Certificate (PDF/Image)</label>
-                <input type="file" required onChange={(e) => setKycFiles({...kycFiles, businessLicense: e.target.files[0]})} />
-              </div>
-              <div className={styles.formGroup}>
-                <label className={styles.label}>Shop Logo</label>
-                <input type="file" required onChange={(e) => setKycFiles({...kycFiles, logo: e.target.files[0]})} />
-              </div>
-              <div className={styles.formGroup}>
-                <label className={styles.label}>Shop Banner</label>
-                <input type="file" required onChange={(e) => setKycFiles({...kycFiles, banner: e.target.files[0]})} />
-              </div>
-            </div>
-            <button type="submit" className={styles.submitBtn} style={{ marginTop: '1.5rem' }}>Submit Documents</button>
-          </form>
-        </div>
-      </div>
-    );
-  }
-
-  // If vendor profile is pending approval
-  if (vendor.status === 'pending') {
-    return (
-      <div style={{ textAlign: 'center', marginTop: '5rem', padding: '2rem', background: 'var(--bg-secondary)', border: '1px solid var(--card-border)', borderRadius: '16px' }}>
-        <h3>⏳ KYC Verification Pending</h3>
-        <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '0.5rem' }}>
-          Your seller registration details have been submitted. Our administrators are currently verifying your business documents. We will notify you via email shortly.
-        </p>
-      </div>
-    );
-  }
-
-  // Active dashboard
-  const myProducts = products.filter(p => p.vendorId === vendor.userId);
+  // Active dashboard — vendor may be null if KYC not submitted yet
+  const myProducts = vendor ? products.filter(p => p.vendorId === vendor.userId) : [];
 
   return (
     <div className={styles.container}>
       <header className={styles.headerRow}>
         <div>
-          <h2>Seller Panel: {vendor.storeName}</h2>
-          <span style={{ fontSize: '0.8rem', color: 'var(--color-accent)' }}>Status: Active | Commission: {vendor.commissionPercentage}%</span>
+          <h2>🌿 Seller Panel{vendor?.storeName ? `: ${vendor.storeName}` : ''}</h2>
+          <span style={{ fontSize: '0.8rem', color: 'var(--color-accent)' }}>
+            {vendor ? `Status: ${vendor.status === 'pending' ? '⏳ Pending Approval' : '✅ Active'} | Commission: ${vendor.commissionPercentage || 0}%` : 'Complete setup to start selling'}
+          </span>
         </div>
       </header>
 
@@ -257,7 +207,7 @@ const VendorDashboard = () => {
           <div className={styles.metricsGrid}>
             <div className={styles.metricCard}>
               <span className={styles.metricTitle}>Gross Revenue</span>
-              <div className={styles.metricVal}>${analytics?.summary?.totalSales || '0'}</div>
+              <div className={styles.metricVal}>₹{analytics?.summary?.totalSales || '0'}</div>
             </div>
             <div className={styles.metricCard}>
               <span className={styles.metricTitle}>Processed Orders</span>
@@ -269,7 +219,7 @@ const VendorDashboard = () => {
             </div>
             <div className={styles.metricCard}>
               <span className={styles.metricTitle}>Platform followers</span>
-              <div className={styles.metricVal}>{vendor.followers?.length || 0}</div>
+              <div className={styles.metricVal}>{vendor?.followers?.length || 0}</div>
             </div>
           </div>
 
@@ -281,7 +231,7 @@ const VendorDashboard = () => {
                   <XAxis dataKey="date" stroke="var(--text-muted)" style={{ fontSize: '0.75rem' }} />
                   <YAxis stroke="var(--text-muted)" style={{ fontSize: '0.75rem' }} />
                   <Tooltip contentStyle={{ background: 'var(--bg-secondary)', borderColor: 'var(--card-border)' }} />
-                  <Area type="monotone" dataKey="totalSales" stroke="var(--color-primary)" fill="rgba(99,102,241,0.15)" strokeWidth={2} />
+                  <Area type="monotone" dataKey="totalSales" stroke="var(--color-primary)" fill="rgba(16, 185, 129, 0.15)" strokeWidth={2} />
                 </AreaChart>
               </ResponsiveContainer>
             )}
@@ -316,7 +266,7 @@ const VendorDashboard = () => {
                         <img src={p.images?.[0] || 'https://via.placeholder.com/45'} alt={p.title} className={styles.productImg} />
                       </td>
                       <td>{p.title}</td>
-                      <td>${p.price.toFixed(2)}</td>
+                      <td>₹{p.price.toFixed(2)}</td>
                       <td>
                         <span className={`${styles.statusIndicator} ${styles[p.status]}`}>
                           {p.status.replace('_', ' ')}
@@ -336,7 +286,7 @@ const VendorDashboard = () => {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 <input type="text" className={styles.input} required placeholder="Product Title" value={newProd.title} onChange={(e) => setNewProd({...newProd, title: e.target.value})} />
                 <textarea className={styles.input} required placeholder="Product Description" style={{ minHeight: '80px' }} value={newProd.description} onChange={(e) => setNewProd({...newProd, description: e.target.value})} />
-                <input type="number" className={styles.input} required placeholder="Base Price ($)" value={newProd.price} onChange={(e) => setNewProd({...newProd, price: e.target.value})} />
+                <input type="number" className={styles.input} required placeholder="Base Price (₹)" value={newProd.price} onChange={(e) => setNewProd({...newProd, price: e.target.value})} />
                 <input type="text" className={styles.input} required placeholder="Brand" value={newProd.brand} onChange={(e) => setNewProd({...newProd, brand: e.target.value})} />
                 
                 <select className={styles.input} required value={newProd.category} onChange={(e) => setNewProd({...newProd, category: e.target.value})}>
@@ -411,7 +361,7 @@ const VendorDashboard = () => {
                         <div key={idx}>{it.title} (x{it.quantity})</div>
                       ))}
                     </td>
-                    <td>${o.totals.total.toFixed(2)}</td>
+                    <td>₹{o.totals.total.toFixed(2)}</td>
                     <td>
                       <span className={`${styles.statusIndicator} ${styles[o.orderStatus]}`}>{o.orderStatus}</span>
                     </td>
@@ -471,8 +421,8 @@ const VendorDashboard = () => {
                   coupons.map((c) => (
                     <tr key={c._id}>
                       <td><strong>{c.code}</strong></td>
-                      <td>{c.discountType === 'flat' ? `$${c.discountValue}` : `${c.discountValue}%`}</td>
-                      <td>${c.minOrderAmount}</td>
+                      <td>{c.discountType === 'flat' ? `₹${c.discountValue}` : `${c.discountValue}%`}</td>
+                      <td>₹{c.minOrderAmount}</td>
                       <td>{c.usageCount} / {c.usageLimit || '∞'}</td>
                       <td>{new Date(c.endDate).toDateString()}</td>
                     </tr>
@@ -491,11 +441,11 @@ const VendorDashboard = () => {
                 
                 <select className={styles.input} value={newCoupon.discountType} onChange={(e) => setNewCoupon({...newCoupon, discountType: e.target.value})}>
                   <option value="percentage">Percentage Discount (%)</option>
-                  <option value="flat">Flat Dollar Discount ($)</option>
+                  <option value="flat">Flat Rupee Discount (₹)</option>
                 </select>
 
                 <input type="number" className={styles.input} required placeholder="Discount Value" value={newCoupon.discountValue} onChange={(e) => setNewCoupon({...newCoupon, discountValue: e.target.value})} />
-                <input type="number" className={styles.input} required placeholder="Min Order Amount ($)" value={newCoupon.minOrderAmount} onChange={(e) => setNewCoupon({...newCoupon, minOrderAmount: e.target.value})} />
+                <input type="number" className={styles.input} required placeholder="Min Order Amount (₹)" value={newCoupon.minOrderAmount} onChange={(e) => setNewCoupon({...newCoupon, minOrderAmount: e.target.value})} />
                 
                 <div>
                   <label className={styles.label}>Start Date</label>

@@ -7,9 +7,9 @@ import styles from './Login.module.css';
 
 const Login = () => {
   const [view, setView] = useState('login'); // 'login', 'register', 'verify', 'forgot', 'reset'
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState('customer');
   const [otp, setOtp] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [error, setError] = useState('');
@@ -33,17 +33,25 @@ const Login = () => {
         else if (user.role === 'vendor') navigate('/vendor');
         else navigate('/');
       } else if (view === 'register') {
-        const res = await axios.post('/api/auth/register', { email, password, role });
+        const res = await axios.post('/api/auth/register', { email, password, role: 'customer' });
         const { user, token } = res.data;
-        setTempCredentials({ user, token });
+        setTempCredentials({ user, token, name });
         setMessage('Registration successful! A welcome email with a 6-digit OTP verification code has been sent to your email.');
         setView('verify');
         setOtp('');
       } else if (view === 'verify') {
         const res = await axios.post('/api/auth/verify-email', { email, token: otp });
         const { user, token } = res.data;
+        if (tempCredentials?.name) {
+          try {
+            const config = { headers: { Authorization: `Bearer ${token}` } };
+            await axios.put('/api/users/profile', { name: tempCredentials.name }, config);
+          } catch (err) {
+            console.error("Failed to save registered name", err);
+          }
+        }
         dispatch(setCredentials({ user, token }));
-        setMessage('Email verified successfully! Welcome to E-Commerce Marketplace.');
+        setMessage('Email verified successfully! Welcome to GLASS.');
         setTimeout(() => {
           if (user.role === 'admin') navigate('/admin');
           else if (user.role === 'vendor') navigate('/vendor');
@@ -120,6 +128,18 @@ const Login = () => {
       return (
         <form onSubmit={handleSubmit}>
           <div className={styles.formGroup}>
+            <label className={styles.label}>Full Name</label>
+            <input
+              type="text"
+              className={styles.input}
+              required
+              placeholder="e.g. John Doe"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
+          </div>
+
+          <div className={styles.formGroup}>
             <label className={styles.label}>Email Address</label>
             <input
               type="email"
@@ -141,18 +161,6 @@ const Login = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
-          </div>
-
-          <div className={styles.formGroup}>
-            <label className={styles.label}>Join Platform As</label>
-            <select
-              className={styles.select}
-              value={role}
-              onChange={(e) => setRole(e.target.value)}
-            >
-              <option value="customer">Customer (Buy Products)</option>
-              <option value="vendor">Seller (Sell Products)</option>
-            </select>
           </div>
 
           <button type="submit" className={styles.submitBtn}>
@@ -302,9 +310,17 @@ const Login = () => {
     }
   };
 
-  const handleSkipVerification = () => {
+  const handleSkipVerification = async () => {
     if (tempCredentials) {
-      const { user, token } = tempCredentials;
+      const { user, token, name } = tempCredentials;
+      if (name) {
+        try {
+          const config = { headers: { Authorization: `Bearer ${token}` } };
+          await axios.put('/api/users/profile', { name }, config);
+        } catch (err) {
+          console.error("Failed to save registered name", err);
+        }
+      }
       dispatch(setCredentials({ user, token }));
       setMessage('Welcome! Logging you in (verification skipped)...');
       setTimeout(() => {

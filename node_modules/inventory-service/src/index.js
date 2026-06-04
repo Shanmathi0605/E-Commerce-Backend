@@ -1,4 +1,5 @@
 const express = require('express');
+require('express-async-errors');
 const cookieParser = require('cookie-parser');
 const connectDB = require('./config/db');
 const { startConsumers } = require('./events/consumers');
@@ -21,7 +22,7 @@ const start = async () => {
   await connectDB();
 
   // Start Kafka Event listeners
-  await startConsumers();
+  startConsumers(); // Non-blocking: runs in background, app starts regardless of Kafka status
 
   const PORT = process.env.PORT || 8005;
   app.listen(PORT, () => {

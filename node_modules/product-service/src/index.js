@@ -30,7 +30,7 @@ const start = async () => {
   await checkElasticsearch();
 
   // Start Kafka consumers to sync MongoDB changes to Elasticsearch
-  await startConsumers();
+  startConsumers(); // Non-blocking: runs in background, app starts regardless of Kafka status
 
   const PORT = process.env.PORT || 8004;
   app.listen(PORT, () => {

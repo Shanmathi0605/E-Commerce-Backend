@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import axios from 'axios';
 import styles from './Profile.module.css';
+import { FiUser, FiMapPin, FiPackage, FiCreditCard, FiUsers, FiDownload, FiX } from 'react-icons/fi';
 
 const Profile = () => {
   const { token, isAuthenticated, user } = useSelector((state) => state.auth);
   const navigate = useNavigate();
+  const location = useLocation();
 
-  const [activeTab, setActiveTab] = useState('profile');
+  const [activeTab, setActiveTab] = useState(location.state?.tab || 'profile');
   const [profile, setProfile] = useState(null);
   const [wallet, setWallet] = useState(null);
   const [referral, setReferral] = useState(null);
@@ -121,7 +123,32 @@ const Profile = () => {
     }
   };
 
+  // Download invoice PDF with auth token (fixes "Site wasn't available" error)
+  const handleDownloadInvoice = async (orderId) => {
+    try {
+      const config = {
+        headers: { Authorization: `Bearer ${token}` },
+        responseType: 'blob' // Receive binary PDF data
+      };
+      const res = await axios.get(`/api/orders/${orderId}/invoice`, config);
+
+      // Create a temporary blob URL and trigger a real file download
+      const blob = new Blob([res.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `GLASS-Invoice-${orderId}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      alert('Failed to download invoice. Please try again.');
+    }
+  };
+
   const handleTopUp = async (e) => {
+
     e.preventDefault();
     if (!topUpAmount || Number(topUpAmount) <= 0) return;
     try {
@@ -180,19 +207,19 @@ const Profile = () => {
       {/* Sidebar Navigation */}
       <aside className={styles.sidebar}>
         <button className={`${styles.tabBtn} ${activeTab === 'profile' ? styles.activeTabBtn : ''}`} onClick={() => setActiveTab('profile')}>
-          👤 Profile Settings
+          <FiUser size={16} /> Profile Settings
         </button>
         <button className={`${styles.tabBtn} ${activeTab === 'addresses' ? styles.activeTabBtn : ''}`} onClick={() => setActiveTab('addresses')}>
-          📍 Shipping Addresses
+          <FiMapPin size={16} /> Shipping Addresses
         </button>
         <button className={`${styles.tabBtn} ${activeTab === 'orders' ? styles.activeTabBtn : ''}`} onClick={() => setActiveTab('orders')}>
-          📦 My Orders
+          <FiPackage size={16} /> My Orders
         </button>
         <button className={`${styles.tabBtn} ${activeTab === 'wallet' ? styles.activeTabBtn : ''}`} onClick={() => setActiveTab('wallet')}>
-          👛 Wallet Balance
+          <FiCreditCard size={16} /> Wallet Balance
         </button>
         <button className={`${styles.tabBtn} ${activeTab === 'referrals' ? styles.activeTabBtn : ''}`} onClick={() => setActiveTab('referrals')}>
-          🤝 Invite & Referrals
+          <FiUsers size={16} /> Invite &amp; Referrals
         </button>
       </aside>
 
@@ -279,16 +306,16 @@ const Profile = () => {
               <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>No orders placed yet.</div>
             ) : (
               orders.map((order) => (
-                <div key={order._id} className={styles.orderItem}>
+                <div key={order.id} className={styles.orderItem}>
                   <div className={styles.orderHeader}>
                     <div>
-                      <strong>Order ID:</strong> {order._id}<br />
+                      <strong>Order ID:</strong> {order.id}<br />
                       <strong>Date:</strong> {new Date(order.createdAt).toDateString()}
                     </div>
                     <div style={{ textAlign: 'right' }}>
                       <span className={`${styles.statusTag} ${styles[order.orderStatus]}`}>{order.orderStatus}</span><br />
                       <strong style={{ display: 'block', marginTop: '0.4rem', color: 'var(--text-main)' }}>
-                        ${order.totals.total.toFixed(2)}
+                        ₹{order.totals.total.toFixed(2)}
                       </strong>
                     </div>
                   </div>
@@ -298,7 +325,7 @@ const Profile = () => {
                     {order.items.map((item, idx) => (
                       <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem' }}>
                         <span>{item.title} (x{item.quantity})</span>
-                        <span>${(item.price * item.quantity).toFixed(2)}</span>
+                        <span>₹{(item.price * item.quantity).toFixed(2)}</span>
                       </div>
                     ))}
                   </div>
@@ -327,21 +354,19 @@ const Profile = () => {
                   )}
 
                   <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', marginTop: '1.5rem' }}>
-                    {/* Direct Invoice PDF download link */}
-                    <a
-                      href={`/api/orders/${order._id}/invoice`}
-                      download
+                    <button
+                      onClick={() => handleDownloadInvoice(order.id)}
                       className={styles.btnSave}
-                      style={{ background: 'var(--bg-tertiary)', border: '1px solid var(--card-border)', color: 'var(--text-main)', textAlign: 'center' }}
+                      style={{ background: 'var(--bg-tertiary)', border: '1px solid var(--card-border)', color: 'var(--text-main)', textAlign: 'center', display: 'flex', alignItems: 'center', gap: '0.4rem' }}
                     >
-                      Download Invoice PDF
-                    </a>
+                      <FiDownload size={14} /> Download Invoice
+                    </button>
 
                     {['pending', 'confirmed'].includes(order.orderStatus) && (
                       <button
                         className={styles.btnSave}
                         style={{ background: 'var(--danger)' }}
-                        onClick={() => handleCancelOrder(order._id)}
+                        onClick={() => handleCancelOrder(order.id)}
                       >
                         Cancel Order
                       </button>
@@ -359,14 +384,14 @@ const Profile = () => {
             <div className={styles.walletHeader}>
               <div>
                 <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Wallet Balance</span>
-                <div className={styles.walletBalance}>${wallet?.balance?.toFixed(2) || '0.00'}</div>
+                <div className={styles.walletBalance}>₹{wallet?.balance?.toFixed(2) || '0.00'}</div>
               </div>
 
               {/* Deposit top-up form */}
               <form onSubmit={handleTopUp} style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                 <input
                   type="number"
-                  placeholder="Amount ($)"
+                  placeholder="Amount (₹)"
                   className={styles.input}
                   style={{ width: '120px' }}
                   required
@@ -397,7 +422,7 @@ const Profile = () => {
                     <tr key={idx}>
                       <td>{tx.description}</td>
                       <td className={tx.type === 'credit' ? styles.credit : styles.debit}>
-                        {tx.type === 'credit' ? '+' : '-'}${tx.amount.toFixed(2)}
+                        {tx.type === 'credit' ? '+' : '-'}₹{tx.amount.toFixed(2)}
                       </td>
                       <td>{tx.type.toUpperCase()}</td>
                       <td>{new Date(tx.timestamp).toDateString()}</td>
@@ -423,7 +448,7 @@ const Profile = () => {
               <div style={{ textAlign: 'right' }}>
                 <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Rewards Earned</span>
                 <div className={styles.walletBalance} style={{ color: 'var(--success)' }}>
-                  ${referral?.rewardsEarned || '0.00'}
+                  ₹{referral?.rewardsEarned || '0.00'}
                 </div>
               </div>
             </div>

@@ -11,7 +11,7 @@ const Footer = () => {
         <a href="#help" className={styles.linkItem}>Help Center</a>
       </div>
       <p className={styles.copyright}>
-        © {new Date().getFullYear()} Enterprise Multi-Vendor Marketplace. Powered by Antigravity Microservices.
+        © {new Date().getFullYear()} GLASS Plant E-Commerce Storefront. All rights reserved.
       </p>
     </footer>
   );

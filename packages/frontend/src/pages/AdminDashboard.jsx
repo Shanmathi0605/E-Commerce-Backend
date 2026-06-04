@@ -133,7 +133,7 @@ const AdminDashboard = () => {
             <div className={styles.metricCard}>
               <span className={styles.metricTitle}>Commissions Income</span>
               <div className={styles.metricVal} style={{ color: 'var(--success)' }}>
-                ${analytics?.summary?.platformCommission?.toFixed(2) || '0.00'}
+                ₹{analytics?.summary?.platformCommission?.toFixed(2) || '0.00'}
               </div>
             </div>
           </div>
@@ -257,7 +257,7 @@ const AdminDashboard = () => {
                       <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{p.description.substring(0, 50)}...</span>
                     </td>
                     <td>{p.brand}</td>
-                    <td>${p.price.toFixed(2)}</td>
+                    <td>₹{p.price.toFixed(2)}</td>
                     <td>{p.vendorId}</td>
                     <td>
                       <button className={`${styles.actionBtn} ${styles.btnApprove}`} onClick={() => handleApproveProduct(p._id, 'active')}>

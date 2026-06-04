@@ -102,7 +102,7 @@ const Cart = () => {
               <div className={styles.itemInfo}>
                 <div>
                   <h4 className={styles.itemTitle}>{item.title}</h4>
-                  <div className={styles.itemPrice}>${item.price.toFixed(2)}</div>
+                  <div className={styles.itemPrice}>₹{item.price.toFixed(2)}</div>
                 </div>
                 <div className={styles.actions}>
                   <div className={styles.qtyControl}>
@@ -134,7 +134,7 @@ const Cart = () => {
                 <div className={styles.itemInfo}>
                   <div>
                     <h4 className={styles.itemTitle}>{item.title}</h4>
-                    <div className={styles.itemPrice}>${item.price.toFixed(2)}</div>
+                    <div className={styles.itemPrice}>₹{item.price.toFixed(2)}</div>
                   </div>
                   <div className={styles.actions}>
                     <button className={`${styles.textBtn} ${styles.saveBtn}`} style={{ marginLeft: 0 }} onClick={() => handleToggleSave(item._id)}>
@@ -156,19 +156,19 @@ const Cart = () => {
         <h3 className={styles.summaryTitle}>Order Summary</h3>
         <div className={styles.row}>
           <span>Subtotal:</span>
-          <span>${subtotal.toFixed(2)}</span>
+          <span>₹{subtotal.toFixed(2)}</span>
         </div>
         <div className={styles.row}>
           <span>Estimated Tax (18%):</span>
-          <span>${tax.toFixed(2)}</span>
+          <span>₹{tax.toFixed(2)}</span>
         </div>
         <div className={styles.row}>
           <span>Shipping Fee:</span>
-          <span>{shipping === 0 ? 'FREE' : `$${shipping.toFixed(2)}`}</span>
+          <span>{shipping === 0 ? 'FREE' : `₹${shipping.toFixed(2)}`}</span>
         </div>
         <div className={styles.totalRow}>
           <span>Order Total:</span>
-          <span>${total.toFixed(2)}</span>
+          <span>₹{total.toFixed(2)}</span>
         </div>
 
         {activeItems.length > 0 && (

@@ -60,7 +60,7 @@
 
 .activeThumbnail {
   border-color: var(--color-primary);
-  box-shadow: 0 0 10px rgba(99, 102, 241, 0.2);
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.2);
 }
 
 .infoSection {

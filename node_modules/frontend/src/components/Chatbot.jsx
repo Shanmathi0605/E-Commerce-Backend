@@ -1,16 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import styles from './Chatbot.module.css';
+import { IoChatbubblesOutline, IoCloseOutline, IoLeafOutline } from 'react-icons/io5';
+import { IoSend } from 'react-icons/io5';
 
 const Chatbot = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState([
-    { sender: 'bot', text: 'Hi! I am your AI assistant. Ask me anything about tracking orders, cancels, returns, or seller registrations!' }
+    { sender: 'bot', text: 'Hi! I am your GLASS plant assistant 🌿 Ask me anything about plants, orders, tracking, or returns!' }
   ]);
   const messagesEndRef = useRef(null);
 
-  // Auto-scroll chat
   useEffect(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
@@ -29,25 +30,25 @@ const Chatbot = () => {
       const res = await axios.post('/api/recommendations/chatbot', { message: userText });
       setMessages(prev => [...prev, { sender: 'bot', text: res.data.response }]);
     } catch (err) {
-      setMessages(prev => [...prev, { sender: 'bot', text: "Sorry, I am having trouble connecting to support services. Please try again." }]);
+      setMessages(prev => [...prev, { sender: 'bot', text: 'Sorry, I am having trouble connecting. Please try again.' }]);
     }
   };
 
   return (
     <div className={styles.chatbotContainer}>
-      <button className={styles.chatButton} onClick={() => setIsOpen(!isOpen)}>
-        {isOpen ? '💬' : '🤖'}
+      <button className={styles.chatButton} onClick={() => setIsOpen(!isOpen)} title="Plant Assistant">
+        {isOpen ? <IoCloseOutline size={24} /> : <IoLeafOutline size={24} />}
       </button>
 
       {isOpen && (
         <div className={styles.chatWindow}>
           <div className={styles.chatHeader}>
-            <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
               <span className={styles.statusIndicator}></span>
-              <h4>Marketplace Assistant</h4>
+              <h4>Plant Assistant</h4>
             </div>
             <button className={styles.closeButton} onClick={() => setIsOpen(false)}>
-              ✕
+              <IoCloseOutline size={20} />
             </button>
           </div>
 
@@ -69,12 +70,12 @@ const Chatbot = () => {
             <input
               type="text"
               className={styles.chatInput}
-              placeholder="Ask a support question..."
+              placeholder="Ask about plants or orders..."
               value={input}
               onChange={(e) => setInput(e.target.value)}
             />
             <button type="submit" className={styles.sendButton}>
-              Send
+              <IoSend size={16} />
             </button>
           </form>
         </div>

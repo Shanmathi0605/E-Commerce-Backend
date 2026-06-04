@@ -19,20 +19,30 @@
   width: 100%;
   padding: 1rem 1.5rem;
   text-align: left;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   font-weight: 600;
   color: var(--text-muted);
   border-bottom: 1px solid var(--card-border);
   transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  border-left: 3px solid transparent;
 }
 
 .tabBtn:last-child {
   border-bottom: none;
 }
 
+.tabBtn:hover {
+  color: var(--text-main);
+  background: rgba(255, 255, 255, 0.03);
+}
+
 .activeTabBtn {
-  background: rgba(99, 102, 241, 0.08);
+  background: rgba(16, 185, 129, 0.08);
   color: var(--color-accent);
+  border-left-color: var(--color-primary);
 }
 
 .contentCard {
@@ -150,7 +160,7 @@
 
 .pending { background: #d97706; color: white; }
 .confirmed { background: #2563eb; color: white; }
-.shipped { background: #a855f7; color: white; }
+.shipped { background: #34d399; color: var(--text-dark); }
 .delivered { background: #10b981; color: white; }
 .cancelled { background: #ef4444; color: white; }
 

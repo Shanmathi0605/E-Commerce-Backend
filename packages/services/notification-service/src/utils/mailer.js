@@ -30,7 +30,11 @@ const sendMail = async (to, subject, text, html) => {
     console.log(`[Email Sandbox Console]
 Recipient: ${to}
 Subject: ${subject}
-Content: ${text}`);
+Content: ${text}
+HTML Preview:
+--------------------------------------------------
+${html}
+--------------------------------------------------`);
   }
 };
 

@@ -1,4 +1,5 @@
 const express = require('express');
+require('express-async-errors');
 const cookieParser = require('cookie-parser');
 const path = require('path');
 const connectDB = require('./config/db');

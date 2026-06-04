@@ -28,8 +28,20 @@ const Search = () => {
 
   // Sync category state from URL changes
   useEffect(() => {
+    if (urlCategory && categories.length > 0) {
+      const isObjectId = /^[0-9a-fA-F]{24}$/.test(urlCategory);
+      if (!isObjectId) {
+        const matched = categories.find(
+          (c) => c.slug === urlCategory.toLowerCase() || c.name.toLowerCase() === urlCategory.toLowerCase()
+        );
+        if (matched) {
+          setSelectedCategory(matched.id || matched._id);
+          return;
+        }
+      }
+    }
     setSelectedCategory(urlCategory);
-  }, [urlCategory]);
+  }, [urlCategory, categories]);
 
   // Load categories list
   useEffect(() => {
@@ -148,7 +160,7 @@ const Search = () => {
         <div className={styles.filterGroup}>
           <h4 className={styles.filterTitle}>Popular Brands</h4>
           <div className={styles.filterList}>
-            {['Sony', 'Nike', 'Apple', 'Adidas', 'Logitech', 'Puma'].map((b) => (
+            {['GreenLife', 'Planto', 'Succulents Co.', 'Bonsai Masters'].map((b) => (
               <label key={b} className={styles.filterItem}>
                 <input
                   type="radio"
@@ -164,7 +176,7 @@ const Search = () => {
 
         {/* Price Ranges */}
         <div className={styles.filterGroup}>
-          <h4 className={styles.filterTitle}>Price Range ($)</h4>
+          <h4 className={styles.filterTitle}>Price Range (₹)</h4>
           <div className={styles.priceRangeInputs}>
             <input
               type="number"
@@ -251,7 +263,7 @@ const Search = () => {
                   <h4 className={styles.productTitle}>{prod.title}</h4>
                   <div className={styles.rating}>★ {prod.averageRating?.toFixed(1) || '0.0'} ({prod.numReviews})</div>
                   <div className={styles.priceRow}>
-                    <span className={styles.price}>${prod.price.toFixed(2)}</span>
+                    <span className={styles.price}>₹{prod.price.toFixed(2)}</span>
                     <button className={styles.addToCartBtn} onClick={(e) => handleAddToCart(e, prod)}>
                       + Cart
                     </button>

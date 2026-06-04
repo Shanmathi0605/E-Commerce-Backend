@@ -1,24 +1,24 @@
 :root {
-  /* Haromonious Dark Theme Color Palette */
-  --bg-primary: #0a0c10;
-  --bg-secondary: #121620;
-  --bg-tertiary: #1b2130;
+  /* Harmonious Forest Green Theme Color Palette */
+  --bg-primary: #061c15;
+  --bg-secondary: #0c2920;
+  --bg-tertiary: #12382c;
   
-  --card-bg: rgba(18, 22, 32, 0.7);
-  --card-border: rgba(255, 255, 255, 0.08);
-  --card-hover-border: rgba(99, 102, 241, 0.4);
+  --card-bg: rgba(12, 41, 32, 0.7);
+  --card-border: rgba(255, 255, 255, 0.05);
+  --card-hover-border: rgba(52, 211, 153, 0.4);
   
-  /* HSL Tailored Brand Colors */
-  --color-primary: hsl(235, 85%, 65%);       /* Indigo-600 */
-  --color-primary-hover: hsl(235, 85%, 55%);
-  --color-secondary: hsl(265, 85%, 65%);     /* Purple-600 */
-  --color-accent: hsl(180, 85%, 45%);        /* Turquoise */
+  /* HSL Tailored Green Colors */
+  --color-primary: hsl(150, 80%, 40%);       /* Emerald Green */
+  --color-primary-hover: hsl(150, 80%, 32%);
+  --color-secondary: hsl(165, 80%, 40%);
+  --color-accent: hsl(142, 70%, 50%);        /* Mint Green */
   --color-gold: hsl(40, 90%, 55%);
   
   /* Text states */
-  --text-main: #f3f4f6;
-  --text-muted: #9ca3af;
-  --text-dark: #1f2937;
+  --text-main: #f0fdf4;
+  --text-muted: #a7f3d0;
+  --text-dark: #061c15;
   
   /* Semantic States */
   --success: #10b981;
@@ -26,15 +26,20 @@
   --danger: #ef4444;
   
   /* Shadows and blurs */
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
-  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.3);
-  --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.4);
-  --glass-blur: blur(12px);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.5);
+  --glass-blur: blur(16px);
   
   /* Transitions */
   --transition-fast: 0.15s ease;
   --transition-normal: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   --transition-slow: 0.5s ease;
+
+  /* Theme-specific custom assets */
+  --nav-bg: rgba(6, 28, 21, 0.85);
+  --hero-bg: radial-gradient(circle at 10% 20%, rgba(12, 41, 32, 0.95) 0%, rgba(6, 28, 21, 0.98) 90%);
+  --search-bar-bg: rgba(12, 41, 32, 0.85);
 }
 
 * {
@@ -100,9 +105,9 @@ button {
 
 /* Glow effects */
 .glow-primary {
-  box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
 }
 
 .glow-secondary {
-  box-shadow: 0 0 20px rgba(168, 85, 247, 0.3);
+  box-shadow: 0 0 20px rgba(52, 211, 153, 0.3);
 }

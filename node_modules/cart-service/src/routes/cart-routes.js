@@ -29,10 +29,12 @@ router.put('/:itemId', [
   body('quantity').isInt({ min: 1 }).withMessage('Quantity must be at least 1')
 ], validateRequest, updateCartItemQuantity);
 
+// IMPORTANT: /clear/active MUST be registered before /:itemId
+// Otherwise Express matches "clear" as itemId and calls removeFromCart instead
+router.delete('/clear/active', clearCart);
+
 router.delete('/:itemId', removeFromCart);
 
 router.patch('/:itemId/save-for-later', toggleSaveForLater);
-
-router.delete('/clear/active', clearCart);
 
 module.exports = router;
