@@ -1,17 +1,27 @@
 const nodemailer = require('nodemailer');
 
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST || 'smtp.ethereal.email',
-  port: process.env.SMTP_PORT || 587,
-  auth: {
-    user: process.env.SMTP_USER || 'mock-user@ethereal.email',
-    pass: process.env.SMTP_PASS || 'mock-pass'
-  }
-});
+const mailConfig = {};
+
+if (process.env.SMTP_HOST && process.env.SMTP_HOST.includes('gmail')) {
+  mailConfig.service = 'gmail';
+} else {
+  mailConfig.host = process.env.SMTP_HOST || 'smtp.ethereal.email';
+  mailConfig.port = parseInt(process.env.SMTP_PORT || '587', 10);
+  mailConfig.secure = process.env.SMTP_SECURE === 'true';
+}
+
+mailConfig.auth = {
+  user: process.env.SMTP_USER || 'mock-user@ethereal.email',
+  pass: (process.env.SMTP_PASS || 'mock-pass').replace(/\s+/g, '')
+};
+
+const transporter = nodemailer.createTransport(mailConfig);
+
+console.log(`[Notification Email Mailer Config] service: ${mailConfig.service || 'custom'}, host: ${mailConfig.host || 'built-in'}, user: ${mailConfig.auth.user}, passLength: ${mailConfig.auth.pass ? mailConfig.auth.pass.length : 0}`);
 
 const sendMail = async (to, subject, text, html) => {
   const mailOptions = {
-    from: '"E-Commerce Marketplace" <noreply@ecommerce.com>',
+    from: process.env.SMTP_FROM || '"E-Commerce Marketplace" <noreply@ecommerce.com>',
     to,
     subject,
     text,

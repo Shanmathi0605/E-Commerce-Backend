@@ -64,6 +64,7 @@ app.use('/api/auth', serviceProxy(SERVICES.auth, '/api/auth'));
 app.use('/api/users', serviceProxy(SERVICES.user, '/api/users'));
 app.use('/api/vendors', serviceProxy(SERVICES.vendor, '/api/vendors'));
 app.use('/api/products', serviceProxy(SERVICES.product, '/api/products'));
+app.use('/uploads', serviceProxy(SERVICES.product, '/uploads'));
 app.use('/api/inventory', serviceProxy(SERVICES.inventory, '/api/inventory'));
 app.use('/api/cart', serviceProxy(SERVICES.cart, '/api/cart'));
 app.use('/api/wishlist', serviceProxy(SERVICES.wishlist, '/api/wishlist'));

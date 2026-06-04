@@ -10,6 +10,10 @@ import Profile from './pages/Profile';
 import VendorDashboard from './pages/VendorDashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import Login from './pages/Login';
+import PlantHub from './pages/PlantHub';
+import Blog from './pages/Blog';
+import FAQ from './pages/FAQ';
+import Wishlist from './pages/Wishlist';
 
 function App() {
   return (
@@ -25,6 +29,10 @@ function App() {
           <Route path="vendor" element={<VendorDashboard />} />
           <Route path="admin" element={<AdminDashboard />} />
           <Route path="login" element={<Login />} />
+          <Route path="plant-hub" element={<PlantHub />} />
+          <Route path="blog" element={<Blog />} />
+          <Route path="faq" element={<FAQ />} />
+          <Route path="wishlist" element={<Wishlist />} />
         </Route>
       </Routes>
     </BrowserRouter>

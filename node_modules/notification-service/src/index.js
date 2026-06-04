@@ -1,6 +1,9 @@
 const express = require('express');
 require('express-async-errors');
 const http = require('http');
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '../../../../.env') });
+require('dotenv').config();
 const cookieParser = require('cookie-parser');
 const { initSocket } = require('./sockets/socket');
 const { startConsumers } = require('./events/consumers');
@@ -37,10 +40,21 @@ app.post('/api/notifications/order-created', async (req, res) => {
   if (userEmail) {
     const subject = `Order Placed Successfully: #${orderId}`;
     
+    const resolveImageUrl = (img) => {
+      if (!img) return '';
+      if (img.startsWith('http://') || img.startsWith('https://')) {
+        return img;
+      }
+      const gatewayUrl = process.env.API_GATEWAY_URL || 'http://localhost:8000';
+      return `${gatewayUrl}${img.startsWith('/') ? '' : '/'}${img}`;
+    };
+
     // Compile items list HTML
-    const itemsHtml = items.map(item => `
+    const itemsHtml = items.map(item => {
+      const imageUrl = resolveImageUrl(item.image);
+      return `
       <div style="display: flex; align-items: center; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #e2e8f0;">
-        ${item.image ? `<img src="${item.image}" alt="${item.title}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px; margin-right: 15px;" />` : '<div style="width: 60px; height: 60px; border-radius: 8px; background-color: #f1f5f9; display: flex; align-items: center; justify-content: center; font-size: 20px; margin-right: 15px;">🌿</div>'}
+        ${imageUrl ? `<img src="${imageUrl}" alt="${item.title}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px; margin-right: 15px;" />` : '<div style="width: 60px; height: 60px; border-radius: 8px; background-color: #f1f5f9; display: flex; align-items: center; justify-content: center; font-size: 20px; margin-right: 15px;">🌿</div>'}
         <div style="flex-grow: 1;">
           <h4 style="margin: 0; color: #1e293b; font-size: 15px; font-weight: 600;">${item.title}</h4>
           <p style="margin: 4px 0 0 0; color: #64748b; font-size: 13px;">Quantity: ${item.quantity} | Price: ₹${item.price.toFixed(2)}</p>
@@ -49,7 +63,8 @@ app.post('/api/notifications/order-created', async (req, res) => {
           ₹${(item.price * item.quantity).toFixed(2)}
         </div>
       </div>
-    `).join('');
+    `;
+    }).join('');
 
     const text = `Thank you for your order! Your order #${orderId} has been received. Total amount is ₹${totals.total.toFixed(2)}.`;
 

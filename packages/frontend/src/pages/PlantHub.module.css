@@ -1,0 +1,1079 @@
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1rem 0;
+  font-family: 'Outfit', sans-serif;
+  color: var(--text-main);
+}
+
+.titleSection {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.mainTitle {
+  font-size: 2.2rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #10b981, #059669, #3b82f6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 0.5rem;
+}
+
+.subtitle {
+  color: var(--text-muted);
+  font-size: 1rem;
+}
+
+/* Glass Tabs Header */
+.tabsHeader {
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 0.5rem;
+  border-radius: 14px;
+  margin-bottom: 2rem;
+  backdrop-filter: blur(10px);
+}
+
+.tabBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.8rem 1.4rem;
+  background: transparent;
+  color: var(--text-muted);
+  border: none;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast) ease-in-out;
+}
+
+.tabBtn:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.activeTabBtn {
+  color: #fff;
+  background: linear-gradient(135deg, #10b981, #059669);
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+}
+
+/* Base Content Container */
+.contentCard {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 20px;
+  padding: 2.5rem;
+  box-shadow: var(--shadow-lg);
+  backdrop-filter: var(--glass-blur);
+  min-height: 450px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Module: Garden Sill */
+.sillHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  border-bottom: 1px solid var(--card-border);
+  padding-bottom: 1rem;
+}
+
+.sillTitle {
+  font-size: 1.5rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btnAddPlant {
+  padding: 0.6rem 1.2rem;
+  background: #10b981;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.btnAddPlant:hover {
+  background: #059669;
+}
+
+.sillShelves {
+  display: flex;
+  flex-direction: column;
+  gap: 4rem;
+  margin-top: 1rem;
+}
+
+.shelfContainer {
+  position: relative;
+  padding-bottom: 1.2rem;
+}
+
+.shelfGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 2rem;
+  padding: 0 1rem;
+  z-index: 2;
+  position: relative;
+}
+
+.shelfWood {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 16px;
+  background: linear-gradient(to bottom, #854d0e, #713f12);
+  border-radius: 4px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255,255,255,0.1);
+  z-index: 1;
+}
+
+.plantCard {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  transition: transform var(--transition-fast) ease, box-shadow var(--transition-fast) ease;
+  backdrop-filter: blur(5px);
+  position: relative;
+}
+
+.plantCard:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.25);
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+.btnDeletePlant {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.btnDeletePlant:hover {
+  background: #ef4444;
+  color: white;
+}
+
+.plantCardImage {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 50%;
+  margin-bottom: 0.8rem;
+  border: 2px solid rgba(255, 255, 255, 0.15);
+}
+
+.plantCardName {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.plantCardType {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-bottom: 0.8rem;
+}
+
+.moistureGauge {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  height: 8px;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+}
+
+.moistureFill {
+  height: 100%;
+  transition: width 0.5s ease-in-out, background-color 0.5s ease-in-out;
+}
+
+.moistureTextRow {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-bottom: 1rem;
+}
+
+.btnWater {
+  width: 100%;
+  padding: 0.5rem;
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  transition: all var(--transition-fast);
+}
+
+.btnWater:hover {
+  background: linear-gradient(135deg, #60a5fa, #3b82f6);
+  box-shadow: 0 0 12px rgba(59, 130, 246, 0.4);
+}
+
+.wateredSparkle {
+  animation: splash 0.6s ease-out forwards;
+}
+
+@keyframes splash {
+  0% { transform: scale(1); opacity: 1; }
+  100% { transform: scale(1.4); opacity: 0; }
+}
+
+/* Modal Styling */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.modalContent {
+  background: #1e293b;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 2rem;
+  width: 100%;
+  max-width: 440px;
+  color: white;
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.modalTitle {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.modalClose {
+  background: transparent;
+  color: var(--text-muted);
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+.formGroup {
+  margin-bottom: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.formLabel {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #94a3b8;
+}
+
+.formInput, .formSelect {
+  padding: 0.7rem;
+  background: #0f172a;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: white;
+  font-size: 0.9rem;
+}
+
+.formSubmitBtn {
+  width: 100%;
+  padding: 0.8rem;
+  background: #10b981;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 0.5rem;
+}
+
+/* Module: AI Plant Doctor */
+.doctorWrapper {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 2rem;
+}
+
+.doctorSidebar {
+  background: rgba(255, 255, 255, 0.02);
+  border-right: 1px solid var(--card-border);
+  padding-right: 1.5rem;
+}
+
+.doctorHolo {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(59, 130, 246, 0.1));
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  border-radius: 12px;
+  padding: 1.2rem;
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.doctorAvatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: #064e3b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 0.8rem auto;
+  border: 2px solid #10b981;
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);
+  color: #10b981;
+  font-size: 2.2rem;
+}
+
+.doctorName {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #10b981;
+  margin-bottom: 0.2rem;
+}
+
+.doctorRole {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.symptomList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.symptomTitle {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.4rem;
+}
+
+.btnSymptom {
+  width: 100%;
+  text-align: left;
+  padding: 0.65rem 1rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  color: var(--text-main);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.btnSymptom:hover {
+  background: rgba(16, 185, 129, 0.08);
+  border-color: rgba(16, 185, 129, 0.3);
+  transform: translateX(4px);
+}
+
+.chatArea {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 480px;
+}
+
+.chatHistory {
+  flex-grow: 1;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.chatBubble {
+  max-width: 80%;
+  padding: 1rem;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.bubbleUser {
+  background: rgba(59, 130, 246, 0.15);
+  border: 1px solid rgba(59, 130, 246, 0.25);
+  align-self: flex-end;
+  border-bottom-right-radius: 2px;
+}
+
+.bubbleDoctor {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--card-border);
+  align-self: flex-start;
+  border-bottom-left-radius: 2px;
+}
+
+.doctorPrescription {
+  margin-top: 0.8rem;
+  background: rgba(16, 185, 129, 0.05);
+  border-left: 3px solid #10b981;
+  padding: 0.6rem 0.8rem;
+  border-radius: 4px;
+}
+
+.prescriptionTitle {
+  font-weight: 700;
+  color: #10b981;
+  margin-bottom: 0.2rem;
+  font-size: 0.8rem;
+}
+
+.recommendedHeader {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.recGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.recCard {
+  background: rgba(255,255,255,0.02);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  padding: 0.6rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.recImg {
+  width: 100%;
+  height: 90px;
+  object-fit: cover;
+  border-radius: 6px;
+  margin-bottom: 0.4rem;
+}
+
+.recTitle {
+  font-size: 0.8rem;
+  font-weight: 700;
+  height: 2.2rem;
+  overflow: hidden;
+  margin-bottom: 0.2rem;
+}
+
+.recBottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.4rem;
+}
+
+.recPrice {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #10b981;
+}
+
+.btnAddToCartIcon {
+  padding: 0.25rem 0.5rem;
+  background: #10b981;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btnAddToCartIcon:hover {
+  background: #059669;
+}
+
+.chatInputArea {
+  display: flex;
+  gap: 0.6rem;
+  border-top: 1px solid var(--card-border);
+  padding-top: 1rem;
+}
+
+.chatInput {
+  flex-grow: 1;
+  padding: 0.75rem 1rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  color: white;
+  outline: none;
+}
+
+.chatInput:focus {
+  border-color: #10b981;
+}
+
+.btnSend {
+  padding: 0.75rem 1.2rem;
+  background: #10b981;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btnSend:hover {
+  background: #059669;
+}
+
+/* Module: Green Impact */
+.impactDashboard {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3rem;
+}
+
+.impactStatsCol {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.statCard {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+}
+
+.statIcon {
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+}
+
+.statLabel {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 0.2rem;
+}
+
+.statVal {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: white;
+}
+
+.badgeTrackerCard {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.05), rgba(59, 130, 246, 0.05));
+  border: 1px solid rgba(16, 185, 129, 0.15);
+  border-radius: 16px;
+  padding: 1.5rem;
+}
+
+.badgeTitleRow {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.8rem;
+  font-size: 0.9rem;
+}
+
+.badgeName {
+  font-weight: 700;
+  color: #10b981;
+}
+
+.badgePoints {
+  color: var(--text-muted);
+}
+
+.badgeProgressOuter {
+  width: 100%;
+  height: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+}
+
+.badgeProgressInner {
+  height: 100%;
+  background: linear-gradient(to right, #10b981, #3b82f6);
+}
+
+.badgeProgressSubtext {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.badgeGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 1.2rem;
+}
+
+.badgeCard {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--card-border);
+  border-radius: 14px;
+  padding: 1.2rem 0.8rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  transition: all var(--transition-fast);
+}
+
+.badgeCardLocked {
+  opacity: 0.45;
+  filter: grayscale(100%);
+}
+
+.badgeIcon {
+  font-size: 2.2rem;
+  margin-bottom: 0.6rem;
+}
+
+.badgeCardName {
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin-bottom: 0.2rem;
+}
+
+.badgeCardLevel {
+  font-size: 0.75rem;
+  color: #10b981;
+}
+
+.badgeCardReq {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+/* Coupon Overlay Claim */
+.couponOverlay {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(59, 130, 246, 0.15));
+  border: 1px dashed #10b981;
+  border-radius: 12px;
+  padding: 1.2rem;
+  margin-top: 1.5rem;
+  text-align: center;
+}
+
+.couponCode {
+  display: inline-block;
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.1);
+  padding: 0.4rem 1.2rem;
+  border-radius: 6px;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  margin-top: 0.5rem;
+  letter-spacing: 0.1em;
+}
+
+/* Module: Subscription Builder */
+.subContainer {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.subSteps {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+  position: relative;
+}
+
+.subStepsLine {
+  position: absolute;
+  top: 15px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.08);
+  z-index: 1;
+}
+
+.subStepNode {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #0f172a;
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  font-weight: 700;
+  z-index: 2;
+  transition: all var(--transition-fast);
+}
+
+.subStepNodeActive {
+  background: #10b981;
+  border-color: #10b981;
+  color: white;
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
+}
+
+.subStepNodeDone {
+  background: #3b82f6;
+  border-color: #3b82f6;
+  color: white;
+}
+
+.subStepCard {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  padding: 2rem;
+  margin-bottom: 1.5rem;
+}
+
+.subStepTitle {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.subStepDesc {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 1.5rem;
+}
+
+.optionsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.optionCard {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  padding: 1.2rem;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.optionCard:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.optionCardActive {
+  background: rgba(16, 185, 129, 0.08);
+  border-color: #10b981;
+}
+
+.optionLabel {
+  font-weight: 700;
+  font-size: 1rem;
+  margin-bottom: 0.2rem;
+}
+
+.optionSublabel {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.colorDotsGrid {
+  display: flex;
+  gap: 1.2rem;
+}
+
+.colorDotContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  cursor: pointer;
+}
+
+.colorDot {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  transition: all var(--transition-fast);
+}
+
+.colorDotActive {
+  border-color: white;
+  transform: scale(1.1);
+  box-shadow: 0 0 10px rgba(255,255,255,0.3);
+}
+
+.subFooter {
+  display: flex;
+  justify-content: space-between;
+}
+
+.btnSubPrev {
+  padding: 0.7rem 1.4rem;
+  background: rgba(255,255,255,0.06);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btnSubNext {
+  padding: 0.7rem 1.4rem;
+  background: #10b981;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btnSubNext:hover {
+  background: #059669;
+}
+
+/* Module: Sill Designer */
+.designerLayout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 2rem;
+}
+
+.designerSidebar {
+  background: rgba(255, 255, 255, 0.02);
+  border-right: 1px solid var(--card-border);
+  padding-right: 1.5rem;
+}
+
+.sidebarTitle {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  color: #10b981;
+}
+
+.designerPlantsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.8rem;
+}
+
+.designerPlantItem {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  padding: 0.5rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.designerPlantItem:hover {
+  background: rgba(16, 185, 129, 0.05);
+  border-color: #10b981;
+  transform: scale(1.03);
+}
+
+.designerPlantImg {
+  width: 100%;
+  height: 70px;
+  object-fit: cover;
+  border-radius: 6px;
+  margin-bottom: 0.3rem;
+}
+
+.designerPlantName {
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.canvasWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.canvasHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.canvasTools {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.toolSliderGroup {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.designerCanvas {
+  height: 420px;
+  border: 2px dashed rgba(255, 255, 255, 0.15);
+  border-radius: 16px;
+  position: relative;
+  overflow: hidden;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.4);
+}
+
+.canvasPlaceholder {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  color: rgba(255,255,255,0.3);
+  pointer-events: none;
+  font-size: 0.9rem;
+}
+
+.placedPlant {
+  position: absolute;
+  cursor: grab;
+  user-select: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.placedPlant:active {
+  cursor: grabbing;
+}
+
+.placedPlantImg {
+  pointer-events: none;
+  object-fit: contain;
+}
+
+.placedPlantControls {
+  display: flex;
+  gap: 4px;
+  background: rgba(0, 0, 0, 0.7);
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-top: 4px;
+  opacity: 0;
+  transition: opacity 0.2s;
+  pointer-events: auto;
+}
+
+.placedPlant:hover .placedPlantControls {
+  opacity: 1;
+}
+
+.placedControlBtn {
+  background: transparent;
+  color: white;
+  border: none;
+  font-size: 0.7rem;
+  cursor: pointer;
+}
+
+.placedControlBtn:hover {
+  color: #ef4444;
+}
+
+.btnBuySetup {
+  padding: 0.8rem 1.6rem;
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  align-self: flex-end;
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.35);
+  transition: all var(--transition-fast);
+}
+
+.btnBuySetup:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.45);
+}
+
+.btnBuySetup:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}

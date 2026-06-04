@@ -8,8 +8,9 @@ import styles from './Login.module.css';
 const Login = () => {
   const [view, setView] = useState('login'); // 'login', 'register', 'verify', 'forgot', 'reset'
   const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState(() => localStorage.getItem('rememberedEmail') || '');
   const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(() => !!localStorage.getItem('rememberedEmail'));
   const [otp, setOtp] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [error, setError] = useState('');
@@ -28,6 +29,11 @@ const Login = () => {
       if (view === 'login') {
         const res = await axios.post('/api/auth/login', { email, password });
         const { user, token } = res.data;
+        if (rememberMe) {
+          localStorage.setItem('rememberedEmail', email);
+        } else {
+          localStorage.removeItem('rememberedEmail');
+        }
         dispatch(setCredentials({ user, token }));
         if (user.role === 'admin') navigate('/admin');
         else if (user.role === 'vendor') navigate('/vendor');
@@ -103,7 +109,16 @@ const Login = () => {
             />
           </div>
 
-          <div style={{ textAlign: 'right', marginBottom: '1rem' }}>
+          <div className={styles.actionsRow}>
+            <label className={styles.rememberMeLabel}>
+              <input
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                className={styles.checkbox}
+              />
+              <span>Remember Me</span>
+            </label>
             <button
               type="button"
               className={styles.toggleBtn}

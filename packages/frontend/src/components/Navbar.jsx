@@ -73,9 +73,9 @@ const Navbar = () => {
           <span>🌿 WELCOME TO GLASS PLANT &amp; NURSERY STORE!</span>
         </div>
         <div className={styles.topUtilityRight}>
-          <Link to="/blog" className={styles.topLink}>Blog</Link>
+          <Link to="/blog" className={styles.topLink} style={{ textDecoration: 'none' }}>Blog</Link>
           <span className={styles.divider}>|</span>
-          <Link to="/faq" className={styles.topLink}>FAQ</Link>
+          <Link to="/faq" className={styles.topLink} style={{ textDecoration: 'none' }}>FAQ</Link>
           <span className={styles.divider}>|</span>
           <span className={styles.topLink}>Free Shipping on Orders ₹500+</span>
         </div>
@@ -89,6 +89,7 @@ const Navbar = () => {
         <div className={styles.navMenu}>
           <Link to="/" className={getActiveStyle('/')}>Home</Link>
           <Link to="/search" className={getActiveStyle('/search')}>Shop</Link>
+          <Link to="/plant-hub" className={getActiveStyle('/plant-hub')}>Care Hub</Link>
           <Link to="/search?category=indoor-plants" className={styles.link}>Indoor Plants</Link>
           <Link to="/search?category=succulents" className={styles.link}>Succulents</Link>
         </div>
@@ -108,8 +109,8 @@ const Navbar = () => {
           {/* Wishlist */}
           <button
             className={styles.iconBtn}
-            onClick={() => navigate(isAuthenticated ? '/profile' : '/login')}
-            title="Wishlist"
+            onClick={() => navigate(isAuthenticated ? '/wishlist' : '/login')}
+            title="My Wishlist"
             style={{ position: 'relative' }}
           >
             <FiHeart size={20} />
