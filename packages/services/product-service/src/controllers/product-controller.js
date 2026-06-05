@@ -278,7 +278,9 @@ const getProducts = async (req, res) => {
   
   if (vendorId) filter.vendorId = vendorId;
   if (status) {
-    filter.status = status;
+    if (status !== 'all') {
+      filter.status = status;
+    }
   } else {
     filter.status = 'active'; // Public shows active only
   }

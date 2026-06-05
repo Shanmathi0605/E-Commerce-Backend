@@ -8,7 +8,8 @@ const registerValidator = [
 
 const loginValidator = [
   body('email').isEmail().withMessage('Email must be valid'),
-  body('password').trim().notEmpty().withMessage('Password must be supplied')
+  body('password').trim().notEmpty().withMessage('Password must be supplied'),
+  body('recaptchaToken').trim().notEmpty().withMessage('reCAPTCHA verification is required')
 ];
 
 const verifyEmailValidator = [

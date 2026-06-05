@@ -13,7 +13,7 @@ import {
 } from 'react-icons/fi';
 
 const Navbar = () => {
-  const { token, isAuthenticated } = useSelector((state) => state.auth);
+  const { token, isAuthenticated, user } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
@@ -90,8 +90,14 @@ const Navbar = () => {
           <Link to="/" className={getActiveStyle('/')}>Home</Link>
           <Link to="/search" className={getActiveStyle('/search')}>Shop</Link>
           <Link to="/plant-hub" className={getActiveStyle('/plant-hub')}>Care Hub</Link>
-          <Link to="/search?category=indoor-plants" className={styles.link}>Indoor Plants</Link>
-          <Link to="/search?category=succulents" className={styles.link}>Succulents</Link>
+          <Link to="/about" className={getActiveStyle('/about')}>About Us</Link>
+          <Link to="/contact" className={getActiveStyle('/contact')}>Contact Us</Link>
+          {isAuthenticated && user?.role === 'admin' && (
+            <Link to="/admin" className={getActiveStyle('/admin')}>Admin Dashboard</Link>
+          )}
+          {isAuthenticated && user?.role === 'vendor' && (
+            <Link to="/vendor" className={getActiveStyle('/vendor')}>Vendor Dashboard</Link>
+          )}
         </div>
 
         {/* Right Action Icons */}

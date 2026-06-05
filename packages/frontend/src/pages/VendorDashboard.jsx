@@ -42,10 +42,12 @@ const VendorDashboard = () => {
       setLoading(true);
       const config = { headers: { Authorization: `Bearer ${token}` } };
 
+      let currentVendor = null;
       // 1. Fetch vendor profile
       try {
         const vendorRes = await axios.get('/api/vendors/profile', config);
-        setVendor(vendorRes.data);
+        currentVendor = vendorRes.data;
+        setVendor(currentVendor);
       } catch (err) {
         // If 404, vendor profile does not exist yet (requires KYC registration)
         setVendor(null);
@@ -60,8 +62,12 @@ const VendorDashboard = () => {
       setCategories(catRes.data);
 
       // 4. Load vendor's products
-      const prodRes = await axios.get('/api/products', config);
-      setProducts(prodRes.data);
+      if (currentVendor) {
+        const prodRes = await axios.get(`/api/products?vendorId=${currentVendor.userId}&status=all`, config);
+        setProducts(prodRes.data);
+      } else {
+        setProducts([]);
+      }
 
       // 5. Load orders
       const ordRes = await axios.get('/api/orders/all', config);
@@ -133,8 +139,10 @@ const VendorDashboard = () => {
       setNewProdImages([]);
       setVariants([{ size: '', color: '', price: '', stock: 10 }]);
       // Refresh list
-      const prodRes = await axios.get('/api/products', config);
-      setProducts(prodRes.data);
+      if (vendor) {
+        const prodRes = await axios.get(`/api/products?vendorId=${vendor.userId}&status=all`, config);
+        setProducts(prodRes.data);
+      }
     } catch (err) {
       alert('Failed to create product');
     }
@@ -261,7 +269,7 @@ const VendorDashboard = () => {
                   </tr>
                 ) : (
                   myProducts.map((p) => (
-                    <tr key={p._id}>
+                    <tr key={p.id || p._id}>
                       <td>
                         <img src={p.images?.[0] || 'https://via.placeholder.com/45'} alt={p.title} className={styles.productImg} />
                       </td>
@@ -353,8 +361,8 @@ const VendorDashboard = () => {
                 </tr>
               ) : (
                 orders.map((o) => (
-                  <tr key={o._id}>
-                    <td>{o._id}</td>
+                  <tr key={o.id || o._id}>
+                    <td>{o.id || o._id}</td>
                     <td>{o.paymentStatus.toUpperCase()}</td>
                     <td>
                       {o.items.map((it, idx) => (
@@ -367,22 +375,22 @@ const VendorDashboard = () => {
                     </td>
                     <td>
                       {o.orderStatus === 'pending' && (
-                        <button className={styles.submitBtn} style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem' }} onClick={() => handleUpdateOrderStatus(o._id, 'confirmed')}>
+                        <button className={styles.submitBtn} style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem' }} onClick={() => handleUpdateOrderStatus(o.id || o._id, 'confirmed')}>
                           Confirm Order
                         </button>
                       )}
                       {o.orderStatus === 'confirmed' && (
-                        <button className={styles.submitBtn} style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem' }} onClick={() => handleUpdateOrderStatus(o._id, 'packed')}>
+                        <button className={styles.submitBtn} style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem' }} onClick={() => handleUpdateOrderStatus(o.id || o._id, 'packed')}>
                           Pack Items
                         </button>
                       )}
                       {o.orderStatus === 'packed' && (
-                        <button className={styles.submitBtn} style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem' }} onClick={() => handleUpdateOrderStatus(o._id, 'shipped')}>
+                        <button className={styles.submitBtn} style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem' }} onClick={() => handleUpdateOrderStatus(o.id || o._id, 'shipped')}>
                           Dispatch (Ship)
                         </button>
                       )}
                       {o.orderStatus === 'shipped' && (
-                        <button className={styles.submitBtn} style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem' }} onClick={() => handleUpdateOrderStatus(o._id, 'delivered')}>
+                        <button className={styles.submitBtn} style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem' }} onClick={() => handleUpdateOrderStatus(o.id || o._id, 'delivered')}>
                           Mark Delivered
                         </button>
                       )}
@@ -419,7 +427,7 @@ const VendorDashboard = () => {
                   </tr>
                 ) : (
                   coupons.map((c) => (
-                    <tr key={c._id}>
+                    <tr key={c.id || c._id}>
                       <td><strong>{c.code}</strong></td>
                       <td>{c.discountType === 'flat' ? `₹${c.discountValue}` : `${c.discountValue}%`}</td>
                       <td>₹{c.minOrderAmount}</td>

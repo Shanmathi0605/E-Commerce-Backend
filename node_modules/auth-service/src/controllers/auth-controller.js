@@ -22,10 +22,11 @@ const generateToken = (user) => {
 // Register Customer/Vendor/Admin
 const register = async (req, res) => {
   const { email, password, role } = req.body;
+  const userRole = role || 'customer';
 
-  const existingUser = await User.findOne({ email });
+  const existingUser = await User.findOne({ email: email.toLowerCase(), role: userRole });
   if (existingUser) {
-    throw new BadRequestError('Email already in use');
+    throw new BadRequestError(`Email already in use for role: ${userRole}`);
   }
 
   // Generate 6 digit OTP for email verification
@@ -80,53 +81,76 @@ const register = async (req, res) => {
 
 // Login user
 const login = async (req, res) => {
-  const { email, password } = req.body;
+  try {
+    const { email, password, recaptchaToken } = req.body;
 
-  const user = await User.findOne({ email });
-  if (!user) {
-    throw new BadRequestError('Invalid credentials');
+    // Google reCAPTCHA Verification
+    const recaptchaSecret = process.env.RECAPTCHA_SECRET_KEY || '6LeIxAcTAAAAAGG-vFI1TnCF6M2vMtjJR18zwYHN';
+    try {
+      const verifyUrl = `https://www.google.com/recaptcha/api/siteverify?secret=${recaptchaSecret}&response=${recaptchaToken}`;
+      const recaptchaResponse = await fetch(verifyUrl, { method: 'POST' });
+      const recaptchaData = await recaptchaResponse.json();
+      
+      if (!recaptchaData.success) {
+        throw new Error('reCAPTCHA verification failed. Please try again.');
+      }
+    } catch (err) {
+      throw new BadRequestError(err.message || 'reCAPTCHA verification failed.');
+    }
+
+    const users = await User.find({ email: email.toLowerCase() });
+    if (!users || users.length === 0) {
+      throw new BadRequestError('Invalid credentials');
+    }
+
+    let matchedUser = null;
+    for (const u of users) {
+      const isMatch = await u.comparePassword(password);
+      if (isMatch) {
+        matchedUser = u;
+        break;
+      }
+    }
+
+    if (!matchedUser) {
+      throw new BadRequestError('Invalid credentials');
+    }
+
+    if (matchedUser.isSuspended) {
+      throw new BadRequestError('This account is suspended');
+    }
+
+    const token = generateToken(matchedUser);
+    res.cookie('jwt', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 24 * 60 * 60 * 1000
+    });
+
+    // Send Login notification email directly
+    const subject = 'New Login Detected';
+    const text = `Hello! A new login was detected on your E-Commerce Marketplace account at ${new Date().toLocaleString()}.`;
+    const html = `<h3>New Login Detected</h3>
+                  <p>Hello,</p>
+                  <p>We detected a new login to your account at <b>${new Date().toLocaleString()}</b>.</p>
+                  <p>If this was you, you can safely ignore this email. If this wasn't you, please secure your account immediately by resetting your password.</p>`;
+    sendMail(matchedUser.email, subject, text, html).catch(err => {
+      console.error(`[Auth Service] Login email error: ${err.message}`);
+    });
+
+    res.status(200).send({ user: matchedUser, token });
+  } catch (err) {
+    console.error('LOGIN ERROR:', err);
+    res.status(500).send({ error: err.message, stack: err.stack });
   }
-
-  if (user.isSuspended) {
-    throw new BadRequestError('This account is suspended');
-  }
-
-  const isMatch = await user.comparePassword(password);
-  if (!isMatch) {
-    throw new BadRequestError('Invalid credentials');
-  }
-
-  const token = generateToken(user);
-  res.cookie('jwt', token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    maxAge: 24 * 60 * 60 * 1000
-  });
-
-  // Send Login notification email directly
-  const subject = 'New Login Detected';
-  const text = `Hello! A new login was detected on your E-Commerce Marketplace account at ${new Date().toLocaleString()}.`;
-  const html = `<h3>New Login Detected</h3>
-                <p>Hello,</p>
-                <p>We detected a new login to your account at <b>${new Date().toLocaleString()}</b>.</p>
-                <p>If this was you, you can safely ignore this email. If this wasn't you, please secure your account immediately by resetting your password.</p>`;
-  sendMail(user.email, subject, text, html).catch(err => {
-    console.error(`[Auth Service] Login email error: ${err.message}`);
-  });
-
-  res.status(200).send({ user, token });
 };
 
 // Verify email address via OTP
 const verifyEmail = async (req, res) => {
   const { email, token } = req.body;
 
-  const user = await User.findOne({ email });
+  const user = await User.findOne({ email: email.toLowerCase(), verificationToken: token });
   if (!user) {
-    throw new BadRequestError('User not found');
-  }
-
-  if (user.verificationToken !== token) {
     throw new BadRequestError('Invalid or expired verification token');
   }
 
@@ -149,20 +173,22 @@ const verifyEmail = async (req, res) => {
 const forgotPassword = async (req, res) => {
   const { email } = req.body;
 
-  const user = await User.findOne({ email });
-  if (!user) {
+  const users = await User.find({ email: email.toLowerCase() });
+  if (!users || users.length === 0) {
     throw new BadRequestError('No account with that email exists');
   }
 
   // Generate random 6-digit numeric OTP for forgot password reset
   const resetToken = Math.floor(100000 + Math.random() * 900000).toString();
-  user.resetPasswordToken = resetToken;
-  user.resetPasswordExpire = Date.now() + 3600000; // 1 hour
-  await user.save();
+  for (const user of users) {
+    user.resetPasswordToken = resetToken;
+    user.resetPasswordExpire = Date.now() + 3600000; // 1 hour
+    await user.save();
+  }
 
   // Send Reset Email event
   await emailVerifyPublisher.publish({
-    email: user.email,
+    email: email.toLowerCase(),
     token: resetToken,
     type: 'reset-password'
   });
@@ -175,7 +201,7 @@ const forgotPassword = async (req, res) => {
                 <h2 style="color: #ef4444; letter-spacing: 2px;">${resetToken}</h2>
                 <p>This code will expire in 1 hour.</p>
                 <p>If you did not request this, you can ignore this email.</p>`;
-  sendMail(user.email, subject, text, html).catch(err => {
+  sendMail(email.toLowerCase(), subject, text, html).catch(err => {
     console.error(`[Auth Service] Forgot password email error: ${err.message}`);
   });
 

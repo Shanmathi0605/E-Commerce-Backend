@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import axios from 'axios';
+import ReCAPTCHA from 'react-google-recaptcha';
 import { setCredentials } from '../redux/slices/authSlice';
 import styles from './Login.module.css';
 
@@ -16,6 +17,8 @@ const Login = () => {
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const [tempCredentials, setTempCredentials] = useState(null);
+  const [recaptchaToken, setRecaptchaToken] = useState(null);
+  const recaptchaRef = useRef(null);
   
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -27,7 +30,11 @@ const Login = () => {
 
     try {
       if (view === 'login') {
-        const res = await axios.post('/api/auth/login', { email, password });
+        if (!recaptchaToken) {
+          setError('Please verify that you are not a robot.');
+          return;
+        }
+        const res = await axios.post('/api/auth/login', { email, password, recaptchaToken });
         const { user, token } = res.data;
         if (rememberMe) {
           localStorage.setItem('rememberedEmail', email);
@@ -78,6 +85,10 @@ const Login = () => {
     } catch (err) {
       const msg = err.response?.data?.errors?.[0]?.message || 'An error occurred. Please try again.';
       setError(msg);
+      if (recaptchaRef.current) {
+        recaptchaRef.current.reset();
+      }
+      setRecaptchaToken(null);
     }
   };
 
@@ -130,6 +141,15 @@ const Login = () => {
             >
               Forgot Password?
             </button>
+          </div>
+
+          <div style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'center', marginBottom: '1.25rem' }}>
+            <ReCAPTCHA
+              ref={recaptchaRef}
+              sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY || "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"}
+              onChange={(token) => setRecaptchaToken(token)}
+              theme="dark"
+            />
           </div>
 
           <button type="submit" className={styles.submitBtn}>

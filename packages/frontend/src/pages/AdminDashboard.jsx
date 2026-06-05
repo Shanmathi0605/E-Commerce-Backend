@@ -176,7 +176,7 @@ const AdminDashboard = () => {
                 </tr>
               ) : (
                 vendors.map((v) => (
-                  <tr key={v._id}>
+                  <tr key={v.id || v._id}>
                     <td>
                       <strong>{v.storeName}</strong><br />
                       <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>User ID: {v.userId}</span>
@@ -251,7 +251,7 @@ const AdminDashboard = () => {
                 </tr>
               ) : (
                 pendingProducts.map((p) => (
-                  <tr key={p._id}>
+                  <tr key={p.id || p._id}>
                     <td>
                       <strong>{p.title}</strong><br />
                       <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{p.description.substring(0, 50)}...</span>
@@ -260,10 +260,10 @@ const AdminDashboard = () => {
                     <td>₹{p.price.toFixed(2)}</td>
                     <td>{p.vendorId}</td>
                     <td>
-                      <button className={`${styles.actionBtn} ${styles.btnApprove}`} onClick={() => handleApproveProduct(p._id, 'active')}>
+                      <button className={`${styles.actionBtn} ${styles.btnApprove}`} onClick={() => handleApproveProduct(p.id || p._id, 'active')}>
                         Approve
                       </button>
-                      <button className={`${styles.actionBtn} ${styles.btnReject}`} onClick={() => handleApproveProduct(p._id, 'rejected')}>
+                      <button className={`${styles.actionBtn} ${styles.btnReject}`} onClick={() => handleApproveProduct(p.id || p._id, 'rejected')}>
                         Reject
                       </button>
                     </td>

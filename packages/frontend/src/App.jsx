@@ -14,6 +14,8 @@ import PlantHub from './pages/PlantHub';
 import Blog from './pages/Blog';
 import FAQ from './pages/FAQ';
 import Wishlist from './pages/Wishlist';
+import About from './pages/About';
+import Contact from './pages/Contact';
 
 function App() {
   return (
@@ -33,6 +35,8 @@ function App() {
           <Route path="blog" element={<Blog />} />
           <Route path="faq" element={<FAQ />} />
           <Route path="wishlist" element={<Wishlist />} />
+          <Route path="about" element={<About />} />
+          <Route path="contact" element={<Contact />} />
         </Route>
       </Routes>
     </BrowserRouter>
