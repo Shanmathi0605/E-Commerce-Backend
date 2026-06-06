@@ -19,13 +19,14 @@ const transporter = nodemailer.createTransport(mailConfig);
 
 console.log(`[Notification Email Mailer Config] service: ${mailConfig.service || 'custom'}, host: ${mailConfig.host || 'built-in'}, user: ${mailConfig.auth.user}, passLength: ${mailConfig.auth.pass ? mailConfig.auth.pass.length : 0}`);
 
-const sendMail = async (to, subject, text, html) => {
+const sendMail = async (to, subject, text, html, attachments = []) => {
   const mailOptions = {
     from: process.env.SMTP_FROM || '"E-Commerce Marketplace" <noreply@ecommerce.com>',
     to,
     subject,
     text,
-    html
+    html,
+    attachments
   };
 
   try {
@@ -41,6 +42,7 @@ const sendMail = async (to, subject, text, html) => {
 Recipient: ${to}
 Subject: ${subject}
 Content: ${text}
+Attachments Count: ${attachments.length}
 HTML Preview:
 --------------------------------------------------
 ${html}

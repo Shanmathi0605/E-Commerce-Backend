@@ -80,7 +80,7 @@ const register = async (req, res) => {
 };
 
 // Login user
-const login = async (req, res) => {
+const login = async (req, res, next) => {
   try {
     const { email, password, recaptchaToken } = req.body;
 
@@ -95,7 +95,12 @@ const login = async (req, res) => {
         throw new Error('reCAPTCHA verification failed. Please try again.');
       }
     } catch (err) {
-      throw new BadRequestError(err.message || 'reCAPTCHA verification failed.');
+      console.error('reCAPTCHA verification error:', err.message);
+      if (process.env.NODE_ENV === 'production') {
+        throw new BadRequestError(err.message || 'reCAPTCHA verification failed.');
+      } else {
+        console.log('[Dev Mode] Allowing login despite reCAPTCHA verification error (likely offline/network issue)');
+      }
     }
 
     const users = await User.find({ email: email.toLowerCase() });
@@ -141,7 +146,7 @@ const login = async (req, res) => {
     res.status(200).send({ user: matchedUser, token });
   } catch (err) {
     console.error('LOGIN ERROR:', err);
-    res.status(500).send({ error: err.message, stack: err.stack });
+    next(err);
   }
 };
 

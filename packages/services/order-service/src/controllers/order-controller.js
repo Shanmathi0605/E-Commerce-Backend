@@ -43,6 +43,15 @@ const createOrder = async (req, res) => {
 
   await order.save();
 
+  // Generate PDF Invoice
+  let invoicePdfBase64 = '';
+  try {
+    const pdfBuffer = await generateInvoicePDF(order);
+    invoicePdfBase64 = pdfBuffer.toString('base64');
+  } catch (pdfErr) {
+    console.error('[Order Service] PDF generation failed:', pdfErr.message);
+  }
+
   // Publish ORDER_CREATED to Kafka (triggers inventory reservation and payment processing)
   const eventPayload = {
     id: order._id,
@@ -51,13 +60,36 @@ const createOrder = async (req, res) => {
     items: order.items,
     totals: order.totals,
     paymentMethod: order.paymentMethod,
-    shippingAddress: order.shippingAddress
+    shippingAddress: order.shippingAddress,
+    invoicePdf: invoicePdfBase64
   };
 
   try {
     await orderCreatedPublisher.publish(eventPayload);
   } catch (err) {
     console.error(`[Kafka] Publish failed: ${err.message}. Falling back to REST API.`);
+  }
+
+  // Local/Dev Fallback: Call inventory service REST API directly to reserve stock
+  const inventoryServiceUrl = process.env.INVENTORY_SERVICE_URL || 'http://localhost:8005';
+  try {
+    const reserveRes = await fetch(`${inventoryServiceUrl}/api/inventory/reserve`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(eventPayload)
+    });
+    
+    if (!reserveRes.ok) {
+      const errData = await reserveRes.json();
+      throw new BadRequestError(errData.message || 'Insufficient stock to complete order.');
+    }
+    console.log('[Order Service] Direct stock reservation request succeeded.');
+  } catch (fetchErr) {
+    if (fetchErr instanceof BadRequestError) {
+      await Order.findByIdAndDelete(order._id);
+      throw fetchErr;
+    }
+    console.error('[Order Service] Direct stock reservation request failed:', fetchErr.message);
   }
 
   // Local/Dev Fallback: Call notification service REST API directly to dispatch email receipt
@@ -127,12 +159,29 @@ const cancelOrder = async (req, res) => {
   await order.save();
 
   // Publish ORDER_CANCELLED to release reserved stock
-  await orderCancelledPublisher.publish({
-    id: order._id,
-    items: order.items,
-    refundAmount: order.paymentStatus === 'refunded' ? order.totals.total : 0,
-    userId: order.userId
-  });
+  try {
+    await orderCancelledPublisher.publish({
+      id: order._id,
+      items: order.items,
+      refundAmount: order.paymentStatus === 'refunded' ? order.totals.total : 0,
+      userId: order.userId
+    });
+  } catch (err) {
+    console.error(`[Kafka] Publish order-cancelled failed: ${err.message}`);
+  }
+
+  // Local/Dev Fallback: Call inventory service REST API directly to release stock
+  try {
+    const inventoryServiceUrl = process.env.INVENTORY_SERVICE_URL || 'http://localhost:8005';
+    await fetch(`${inventoryServiceUrl}/api/inventory/release`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: order._id, items: order.items })
+    });
+    console.log('[Order Service] Direct stock release request dispatched to Inventory Service.');
+  } catch (fetchErr) {
+    console.error('[Order Service] Direct stock release request failed:', fetchErr.message);
+  }
 
   res.status(200).send(order);
 };

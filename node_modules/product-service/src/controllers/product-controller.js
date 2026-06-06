@@ -100,18 +100,38 @@ const createProduct = async (req, res) => {
   await product.save();
 
   // Publish event (to notify inventory, but does not index to ES until approved)
-  await productCreatedPublisher.publish({
-    id: product._id,
-    vendorId: product.vendorId,
-    title: product.title,
-    description: product.description,
-    price: product.price,
-    category: product.category,
-    brand: product.brand,
-    images: product.images,
-    variants: product.variants,
-    status: product.status
-  });
+  try {
+    await productCreatedPublisher.publish({
+      id: product._id,
+      vendorId: product.vendorId,
+      title: product.title,
+      description: product.description,
+      price: product.price,
+      category: product.category,
+      brand: product.brand,
+      images: product.images,
+      variants: product.variants,
+      status: product.status
+    });
+  } catch (err) {
+    console.error(`[Kafka] Publish product-created failed: ${err.message}`);
+  }
+
+  // Local/Dev Fallback: Call inventory service REST API directly to initialize stock
+  try {
+    const inventoryServiceUrl = process.env.INVENTORY_SERVICE_URL || 'http://localhost:8005';
+    await fetch(`${inventoryServiceUrl}/api/inventory/product-created`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id: product._id,
+        variants: product.variants
+      })
+    });
+    console.log('[Product Service] Direct stock initialization request dispatched to Inventory Service.');
+  } catch (fetchErr) {
+    console.error('[Product Service] Direct stock initialization request failed:', fetchErr.message);
+  }
 
   res.status(201).send(product);
 };

@@ -61,7 +61,7 @@ const startConsumers = async () => {
 
     // 2. Order Placed - Email Receipt & Browser Push
     await orderConsumer.listen(async (data) => {
-      const { id: orderId, userId, userEmail, totals, items, shippingAddress } = data;
+      const { id: orderId, userId, userEmail, totals, items, shippingAddress, invoicePdf } = data;
       console.log(`[Notification Consumer] Processing order mail & socket notification for order: ${orderId}`);
 
       // Send Browser Alert
@@ -171,7 +171,15 @@ const startConsumers = async () => {
           </div>
         `;
 
-        await sendMail(userEmail, subject, text, html);
+        const attachments = [];
+        if (invoicePdf) {
+          attachments.push({
+            filename: `invoice-${orderId}.pdf`,
+            content: Buffer.from(invoicePdf, 'base64'),
+            contentType: 'application/pdf'
+          });
+        }
+        await sendMail(userEmail, subject, text, html, attachments);
       }
     });
 

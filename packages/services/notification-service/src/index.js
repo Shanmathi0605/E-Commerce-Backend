@@ -19,7 +19,7 @@ app.get('/health', (req, res) => {
 });
 
 app.post('/api/notifications/order-created', async (req, res) => {
-  const { id: orderId, userId, userEmail, totals, items, shippingAddress } = req.body;
+  const { id: orderId, userId, userEmail, totals, items, shippingAddress, invoicePdf } = req.body;
   console.log(`[Notification REST API] Processing order receipt for order: ${orderId}`);
 
   // Send Browser Socket Alert
@@ -131,7 +131,15 @@ app.post('/api/notifications/order-created', async (req, res) => {
     `;
 
     const { sendMail } = require('./utils/mailer');
-    await sendMail(userEmail, subject, text, html);
+    const attachments = [];
+    if (invoicePdf) {
+      attachments.push({
+        filename: `invoice-${orderId}.pdf`,
+        content: Buffer.from(invoicePdf, 'base64'),
+        contentType: 'application/pdf'
+      });
+    }
+    await sendMail(userEmail, subject, text, html, attachments);
   }
 
   res.status(200).send({ message: 'Notification processed' });

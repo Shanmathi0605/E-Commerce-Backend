@@ -12,6 +12,7 @@ const ProductDetails = () => {
   const [product, setProduct] = useState(null);
   const [activeImage, setActiveImage] = useState('');
   const [selectedVariant, setSelectedVariant] = useState(null);
+  const [stocks, setStocks] = useState({});
   const [reviews, setReviews] = useState([]);
   const [related, setRelated] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -43,6 +44,20 @@ const ProductDetails = () => {
         
         if (prod.variants && prod.variants.length > 0) {
           setSelectedVariant(prod.variants[0]);
+        }
+
+        // Fetch stock levels publicly from inventory-service
+        try {
+          const stockRes = await axios.get(`/api/inventory/public/${productId}`);
+          const stockMap = {};
+          if (Array.isArray(stockRes.data)) {
+            stockRes.data.forEach(r => {
+              stockMap[r.variantId || ''] = r.stock;
+            });
+          }
+          setStocks(stockMap);
+        } catch (stockErr) {
+          console.error('Failed to load stock levels', stockErr);
         }
 
         // 2. Log Browse view activity to recommendation-service
@@ -197,6 +212,17 @@ const ProductDetails = () => {
             ₹{selectedVariant?.price || product.price.toFixed(2)}
           </div>
 
+          <div style={{ marginTop: '0.25rem', marginBottom: '0.25rem' }}>
+            {(() => {
+              const currentStock = stocks[selectedVariant?._id || ''] ?? 0;
+              return currentStock > 0 ? (
+                <span className={styles.inStock}>In Stock ({currentStock} available)</span>
+              ) : (
+                <span className={styles.outOfStock}>Out of Stock</span>
+              );
+            })()}
+          </div>
+
           <p className={styles.description}>{product.description}</p>
 
           {/* Product Variant selector matrix */}
@@ -218,9 +244,20 @@ const ProductDetails = () => {
           )}
 
           <div className={styles.actionRow}>
-            <button className={styles.btnPrimary} onClick={handleAddToCart}>
-              Add to Shopping Cart
-            </button>
+            {(() => {
+              const currentStock = stocks[selectedVariant?._id || ''] ?? 0;
+              const isAvailable = currentStock > 0;
+              return (
+                <button
+                  className={styles.btnPrimary}
+                  onClick={handleAddToCart}
+                  disabled={!isAvailable}
+                  style={!isAvailable ? { backgroundColor: 'var(--text-muted)', cursor: 'not-allowed' } : {}}
+                >
+                  {isAvailable ? 'Add to Shopping Cart' : 'Out of Stock'}
+                </button>
+              );
+            })()}
             <button className={styles.btnSecondary} onClick={handleAddToWishlist}>
               ♡ Save
             </button>
