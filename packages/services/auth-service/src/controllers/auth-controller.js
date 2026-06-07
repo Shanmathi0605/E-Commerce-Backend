@@ -21,12 +21,22 @@ const generateToken = (user) => {
 
 // Register Customer/Vendor/Admin
 const register = async (req, res) => {
-  const { email, password, role } = req.body;
-  const userRole = role || 'customer';
+  const { email, password, registrationSecret } = req.body;
 
-  const existingUser = await User.findOne({ email: email.toLowerCase(), role: userRole });
+  let userRole = 'customer';
+  if (registrationSecret) {
+    if (registrationSecret === (process.env.ADMIN_REGISTRATION_KEY || 'admin123')) {
+      userRole = 'admin';
+    } else if (registrationSecret === (process.env.VENDOR_REGISTRATION_KEY || 'vendor123')) {
+      userRole = 'vendor';
+    } else {
+      throw new BadRequestError('Invalid registration passcode');
+    }
+  }
+
+  const existingUser = await User.findOne({ email: email.toLowerCase() });
   if (existingUser) {
-    throw new BadRequestError(`Email already in use for role: ${userRole}`);
+    throw new BadRequestError(`Email already in use`);
   }
 
   // Generate 6 digit OTP for email verification
@@ -35,7 +45,7 @@ const register = async (req, res) => {
   const user = new User({
     email,
     password,
-    role: role || 'customer',
+    role: userRole,
     isVerified: false,
     verificationToken
   });
@@ -105,7 +115,7 @@ const login = async (req, res, next) => {
 
     const users = await User.find({ email: email.toLowerCase() });
     if (!users || users.length === 0) {
-      throw new BadRequestError('Invalid credentials');
+      throw new BadRequestError('Invalid credentials (user not found)');
     }
 
     let matchedUser = null;
@@ -118,7 +128,7 @@ const login = async (req, res, next) => {
     }
 
     if (!matchedUser) {
-      throw new BadRequestError('Invalid credentials');
+      throw new BadRequestError('Invalid credentials (incorrect password)');
     }
 
     if (matchedUser.isSuspended) {

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import axios from 'axios';
 import ReCAPTCHA from 'react-google-recaptcha';
+import { FiEye, FiEyeOff } from 'react-icons/fi';
 import { setCredentials } from '../redux/slices/authSlice';
 import styles from './Login.module.css';
 
@@ -12,6 +13,12 @@ const Login = () => {
   const [email, setEmail] = useState(() => localStorage.getItem('rememberedEmail') || '');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(() => !!localStorage.getItem('rememberedEmail'));
+  const [passcode, setPasscode] = useState('');
+  const [showPasscodeInput, setShowPasscodeInput] = useState(false);
+  const [titleClickCount, setTitleClickCount] = useState(0);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showPasscodeText, setShowPasscodeText] = useState(false);
   const [otp, setOtp] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [error, setError] = useState('');
@@ -46,7 +53,7 @@ const Login = () => {
         else if (user.role === 'vendor') navigate('/vendor');
         else navigate('/');
       } else if (view === 'register') {
-        const res = await axios.post('/api/auth/register', { email, password, role: 'customer' });
+        const res = await axios.post('/api/auth/register', { email, password, registrationSecret: passcode });
         const { user, token } = res.data;
         setTempCredentials({ user, token, name });
         setMessage('Registration successful! A welcome email with a 6-digit OTP verification code has been sent to your email.');
@@ -110,14 +117,25 @@ const Login = () => {
 
           <div className={styles.formGroup}>
             <label className={styles.label}>Password</label>
-            <input
-              type="password"
-              className={styles.input}
-              required
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
+            <div className={styles.passwordWrapper}>
+              <input
+                type={showPassword ? 'text' : 'password'}
+                className={styles.input}
+                required
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+              <button
+                type="button"
+                className={styles.eyeBtn}
+                onClick={() => setShowPassword(p => !p)}
+                tabIndex={-1}
+                title={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? <FiEye size={16} /> : <FiEyeOff size={16} />}
+              </button>
+            </div>
           </div>
 
           <div className={styles.actionsRow}>
@@ -143,7 +161,7 @@ const Login = () => {
             </button>
           </div>
 
-          <div style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'center', marginBottom: '1.25rem' }}>
+          <div className={styles.recaptchaWrapper}>
             <ReCAPTCHA
               ref={recaptchaRef}
               sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY || "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"}
@@ -188,15 +206,52 @@ const Login = () => {
 
           <div className={styles.formGroup}>
             <label className={styles.label}>Password</label>
-            <input
-              type="password"
-              className={styles.input}
-              required
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
+            <div className={styles.passwordWrapper}>
+              <input
+                type={showPassword ? 'text' : 'password'}
+                className={styles.input}
+                required
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+              <button
+                type="button"
+                className={styles.eyeBtn}
+                onClick={() => setShowPassword(p => !p)}
+                tabIndex={-1}
+                title={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? <FiEye size={16} /> : <FiEyeOff size={16} />}
+              </button>
+            </div>
           </div>
+
+          {showPasscodeInput && (
+            <div className={styles.formGroup} style={{ animation: 'fadeIn 0.3s ease' }}>
+              <label className={styles.label} style={{ color: '#f59e0b', fontSize: '0.75rem', letterSpacing: '0.1em' }}>🔐 ACCESS PASSCODE (RESTRICTED)</label>
+              <div className={styles.passwordWrapper}>
+                <input
+                  type={showPasscodeText ? 'text' : 'password'}
+                  className={styles.input}
+                  placeholder="Enter registration passcode"
+                  value={passcode}
+                  onChange={(e) => setPasscode(e.target.value)}
+                  style={{ borderColor: '#f59e0b' }}
+                />
+                <button
+                  type="button"
+                  className={styles.eyeBtn}
+                  onClick={() => setShowPasscodeText(p => !p)}
+                  tabIndex={-1}
+                  style={{ color: '#f59e0b' }}
+                  title={showPasscodeText ? 'Hide passcode' : 'Show passcode'}
+                >
+                  {showPasscodeText ? <FiEye size={16} /> : <FiEyeOff size={16} />}
+                </button>
+              </div>
+            </div>
+          )}
 
           <button type="submit" className={styles.submitBtn}>
             Create Account
@@ -265,14 +320,25 @@ const Login = () => {
 
           <div className={styles.formGroup}>
             <label className={styles.label}>New Password</label>
-            <input
-              type="password"
-              className={styles.input}
-              required
-              placeholder="••••••••"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-            />
+            <div className={styles.passwordWrapper}>
+              <input
+                type={showNewPassword ? 'text' : 'password'}
+                className={styles.input}
+                required
+                placeholder="••••••••"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+              />
+              <button
+                type="button"
+                className={styles.eyeBtn}
+                onClick={() => setShowNewPassword(p => !p)}
+                tabIndex={-1}
+                title={showNewPassword ? 'Hide password' : 'Show password'}
+              >
+                {showNewPassword ? <FiEye size={16} /> : <FiEyeOff size={16} />}
+              </button>
+            </div>
           </div>
 
           <button type="submit" className={styles.submitBtn}>
@@ -382,7 +448,23 @@ const Login = () => {
   return (
     <div className={styles.container}>
       <div className={styles.card}>
-        <h2 className={styles.title}>{getTitle()}</h2>
+        <h2
+          className={styles.title}
+          onClick={() => {
+            if (view === 'register') {
+              const newCount = titleClickCount + 1;
+              setTitleClickCount(newCount);
+              if (newCount >= 5) {
+                setShowPasscodeInput(prev => !prev);
+                setTitleClickCount(0);
+                if (!showPasscodeInput) setPasscode('');
+              }
+            }
+          }}
+          style={view === 'register' ? { cursor: 'default', userSelect: 'none' } : {}}
+        >
+          {getTitle()}
+        </h2>
 
         {error && <div style={{ color: 'var(--danger)', fontSize: '0.85rem', marginBottom: '1rem', textAlign: 'center' }}>⚠️ {error}</div>}
         {message && <div style={{ color: 'var(--success)', fontSize: '0.85rem', marginBottom: '1rem', textAlign: 'center' }}>✓ {message}</div>}

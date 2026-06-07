@@ -1,38 +1,49 @@
 import React, { useState } from 'react';
 import styles from './Contact.module.css';
 
+const plantTips = [
+  {
+    icon: '💧',
+    title: 'Watering',
+    tip: 'Water deeply but infrequently. Most indoor plants prefer to dry out slightly between waterings. Check the top 2 inches of soil — if it\'s dry, it\'s time to water.',
+    tag: 'Essential',
+  },
+  {
+    icon: '☀️',
+    title: 'Sunlight',
+    tip: 'Place plants near bright, indirect light. South or east-facing windows are ideal. Avoid harsh afternoon sun, which can scorch delicate leaves.',
+    tag: 'Lighting',
+  },
+  {
+    icon: '🌱',
+    title: 'Soil & Potting',
+    tip: 'Use well-draining potting mix suited to your plant type. Succulents need sandy soil; tropicals prefer a peat-rich blend. Repot every 1–2 years as roots outgrow the pot.',
+    tag: 'Growth',
+  },
+  {
+    icon: '🌡️',
+    title: 'Temperature',
+    tip: 'Most houseplants thrive between 18–27°C. Avoid placing them near cold drafts, air conditioners, or heating vents to prevent stress and leaf drop.',
+    tag: 'Climate',
+  },
+  {
+    icon: '🍃',
+    title: 'Fertilising',
+    tip: 'Feed your plants with a balanced liquid fertiliser every 2–4 weeks during the growing season (spring and summer). Reduce or stop feeding in winter.',
+    tag: 'Nutrition',
+  },
+  {
+    icon: '🐛',
+    title: 'Pest Control',
+    tip: 'Inspect leaves regularly for mealybugs, spider mites, or scale insects. Wipe leaves with neem oil solution or insecticidal soap to keep pests at bay.',
+    tag: 'Health',
+  },
+];
+
 const Contact = () => {
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    subject: '',
-    message: ''
-  });
-  const [submitted, setSubmitted] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(null);
 
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!formData.name || !formData.email || !formData.message) {
-      alert('Please fill out all required fields.');
-      return;
-    }
-    setLoading(true);
-
-    // Simulate API request
-    setTimeout(() => {
-      setLoading(false);
-      setSubmitted(true);
-      setFormData({ name: '', email: '', subject: '', message: '' });
-    }, 1200);
-  };
+  const toggle = (i) => setActiveIndex(activeIndex === i ? null : i);
 
   return (
     <div className={styles.container}>
@@ -48,7 +59,7 @@ const Contact = () => {
         </div>
       </section>
 
-      {/* Main Form and Details Layout */}
+      {/* Main Layout */}
       <div className={styles.contentGrid}>
         {/* Left: Contact Info */}
         <div className={styles.infoColumn}>
@@ -102,85 +113,32 @@ const Contact = () => {
           </div>
         </div>
 
-        {/* Right: Contact Form */}
-        <div className={styles.formColumn}>
-          <div className={styles.card}>
-            <h3>Send a Message</h3>
-            
-            {submitted ? (
-              <div className={styles.successBlock}>
-                <span className={styles.successIcon}>🌿</span>
-                <h4>Thank You!</h4>
-                <p>Your message has been successfully sent. A plant specialist will reach out to you within 24 hours.</p>
-                <button 
-                  className={styles.resetBtn} 
-                  onClick={() => setSubmitted(false)}
-                >
-                  Send another message
-                </button>
+        {/* Right: Plant Care Quick Tips */}
+        <div className={styles.tipsColumn}>
+          <div className={styles.tipsHeader}>
+            <span className={styles.tipsLabel}>🌿 Plant Care Quick Tips</span>
+            <p className={styles.tipsSubtitle}>Essential care advice from our nursery specialists to keep your plants thriving.</p>
+          </div>
+          <div className={styles.tipsGrid}>
+            {plantTips.map((item, i) => (
+              <div
+                key={i}
+                className={`${styles.tipCard} ${activeIndex === i ? styles.tipCardActive : ''}`}
+                onClick={() => toggle(i)}
+              >
+                <div className={styles.tipCardTop}>
+                  <span className={styles.tipIcon}>{item.icon}</span>
+                  <div className={styles.tipMeta}>
+                    <span className={styles.tipTag}>{item.tag}</span>
+                    <h4 className={styles.tipTitle}>{item.title}</h4>
+                  </div>
+                  <span className={styles.tipChevron}>{activeIndex === i ? '▲' : '▼'}</span>
+                </div>
+                {activeIndex === i && (
+                  <p className={styles.tipText}>{item.tip}</p>
+                )}
               </div>
-            ) : (
-              <form onSubmit={handleSubmit} className={styles.form}>
-                <div className={styles.inputGroup}>
-                  <label htmlFor="name">Full Name *</label>
-                  <input
-                    type="text"
-                    id="name"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    placeholder="Your name"
-                    required
-                  />
-                </div>
-
-                <div className={styles.inputGroup}>
-                  <label htmlFor="email">Email Address *</label>
-                  <input
-                    type="email"
-                    id="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    placeholder="Your email"
-                    required
-                  />
-                </div>
-
-                <div className={styles.inputGroup}>
-                  <label htmlFor="subject">Subject</label>
-                  <input
-                    type="text"
-                    id="subject"
-                    name="subject"
-                    value={formData.subject}
-                    onChange={handleChange}
-                    placeholder="Topic (e.g. bulk order, custom terrariums)"
-                  />
-                </div>
-
-                <div className={styles.inputGroup}>
-                  <label htmlFor="message">Message *</label>
-                  <textarea
-                    id="message"
-                    name="message"
-                    value={formData.message}
-                    onChange={handleChange}
-                    placeholder="Write your message here..."
-                    rows="5"
-                    required
-                  ></textarea>
-                </div>
-
-                <button 
-                  type="submit" 
-                  className={styles.submitBtn}
-                  disabled={loading}
-                >
-                  {loading ? 'Sending message...' : 'Submit Message'}
-                </button>
-              </form>
-            )}
+            ))}
           </div>
         </div>
       </div>

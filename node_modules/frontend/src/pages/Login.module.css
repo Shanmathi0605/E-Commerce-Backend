@@ -14,6 +14,7 @@
   padding: 2.5rem;
   box-shadow: var(--shadow-lg);
   backdrop-filter: var(--glass-blur);
+  overflow: visible;
 }
 
 .title {
@@ -125,4 +126,51 @@
   cursor: pointer;
 }
 
+/* reCAPTCHA wrapper — allows test-mode red banner to overflow outside card */
+.recaptchaWrapper {
+  margin-top: 1.5rem;
+  margin-bottom: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow: visible;
+  position: relative;
+}
+
+.recaptchaWrapper > div {
+  overflow: visible !important;
+}
+
+.recaptchaWrapper > div > div {
+  overflow: visible !important;
+}
+
+/* Password field wrapper with eye icon */
+.passwordWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.passwordWrapper .input {
+  width: 100%;
+  padding-right: 2.5rem;
+}
+
+.eyeBtn {
+  position: absolute;
+  right: 0.75rem;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding: 0;
+  transition: color var(--transition-fast);
+}
+
+.eyeBtn:hover {
+  color: var(--color-primary);
+}
 
