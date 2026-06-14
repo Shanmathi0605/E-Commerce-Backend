@@ -72,6 +72,62 @@ const PlantHub = () => {
   const [activeCanvasId, setActiveCanvasId] = useState(null);
   const [scaleFactor, setScaleFactor] = useState(100);
   const canvasRef = useRef(null);
+  const [customBgUrl, setCustomBgUrl] = useState('');
+
+  // Weather Widget State
+  const [weather, setWeather] = useState(null);
+  const [weatherAlert, setWeatherAlert] = useState('');
+
+  // Care Reminders State
+  const [careReminders, setCareReminders] = useState(() => {
+    const saved = localStorage.getItem('hub_care_reminders');
+    return saved ? JSON.parse(saved) : [
+      { id: 1, plantName: 'Monty', taskType: 'Watering', dueDate: new Date().toLocaleDateString(), completed: false },
+      { id: 2, plantName: 'Spike', taskType: 'Fertilizing', dueDate: new Date(Date.now() + 86400000 * 2).toLocaleDateString(), completed: false }
+    ];
+  });
+  const [newReminderPlant, setNewReminderPlant] = useState('Monty');
+  const [newReminderTask, setNewReminderTask] = useState('Watering');
+  const [newReminderDays, setNewReminderDays] = useState(3);
+
+  // Weather check using Open-Meteo
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          try {
+            const { latitude, longitude } = position.coords;
+            const res = await axios.get(
+              `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true`
+            );
+            if (res.data && res.data.current_weather) {
+              const cur = res.data.current_weather;
+              setWeather(cur);
+              
+              // Generate alert message based on conditions
+              let alertMsg = '';
+              if (cur.temperature > 32) {
+                alertMsg = `🔥 Hot weather alert (${cur.temperature}°C). Your plants will lose moisture rapidly. Check soil and water them soon!`;
+              } else if (cur.temperature < 15) {
+                alertMsg = `❄️ Cool temperature (${cur.temperature}°C). Reduce watering frequency to prevent root rot.`;
+              } else {
+                alertMsg = `☀️ Perfect plant climate (${cur.temperature}°C). Keep maintaining regular watering schedules.`;
+              }
+              setWeatherAlert(alertMsg);
+            }
+          } catch (err) {
+            console.error('Failed to fetch weather', err);
+          }
+        },
+        (err) => console.log('Geolocation permission denied or error. Weather widget skipped.')
+      );
+    }
+  }, []);
+
+  // Sync Care Reminders to Local Storage
+  useEffect(() => {
+    localStorage.setItem('hub_care_reminders', JSON.stringify(careReminders));
+  }, [careReminders]);
 
   // Fetch real products on mount to populate designer and recommendations
   useEffect(() => {
@@ -225,46 +281,77 @@ const PlantHub = () => {
   };
 
   // Chat Custom Send Input
-  const handleSendMessage = (e) => {
+  const handleSendMessage = async (e) => {
     e.preventDefault();
     if (!chatInput.trim()) return;
 
-    const inputLower = chatInput.toLowerCase();
-    let replyKey = 'yellowing'; // default fallback
-    let matchLabel = 'general leaf stress';
-
-    if (inputLower.includes('brown') || inputLower.includes('dry') || inputLower.includes('crispy')) {
-      replyKey = 'brown-tips';
-      matchLabel = 'Dry / Brown Leaf Tips';
-    } else if (inputLower.includes('spot') || inputLower.includes('bug') || inputLower.includes('white') || inputLower.includes('pest')) {
-      replyKey = 'white-spots';
-      matchLabel = 'Pest or White Spots';
-    } else if (inputLower.includes('droop') || inputLower.includes('wilt') || inputLower.includes('hang')) {
-      replyKey = 'drooping';
-      matchLabel = 'Drooping stems';
-    } else if (inputLower.includes('yellow') || inputLower.includes('water')) {
-      replyKey = 'yellowing';
-      matchLabel = 'Yellow leaves';
-    }
-
-    const data = DIAGNOSIS_DB[replyKey];
-    const recommendedItems = products.filter(p =>
-      data.recs.some(name => p.title.toLowerCase().includes(name.toLowerCase()))
-    );
-
-    setChatHistory((prev) => [
-      ...prev,
-      { sender: 'user', text: chatInput },
-      {
-        sender: 'doctor',
-        text: `I've analyzed your description "${chatInput}". Here's my diagnostic advice:`,
-        diagnosis: data.diagnosis,
-        prescription: data.prescription,
-        products: recommendedItems.length > 0 ? recommendedItems : products.slice(5, 8)
-      }
-    ]);
-
+    const queryText = chatInput;
     setChatInput('');
+
+    // Optimistically add user chat bubble
+    setChatHistory((prev) => [...prev, { sender: 'user', text: queryText }]);
+
+    try {
+      const config = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
+      const res = await axios.post('/api/recommendations/chatbot', { message: queryText }, config);
+      
+      // Select product recommendations based on query context to append
+      const inputLower = queryText.toLowerCase();
+      let recList = products.slice(5, 8); // default tools
+      if (inputLower.includes('brown') || inputLower.includes('dry') || inputLower.includes('crispy')) {
+        recList = products.filter(p => ['cactus', 'bonsai', 'desert'].some(name => p.title.toLowerCase().includes(name)));
+      } else if (inputLower.includes('spot') || inputLower.includes('bug') || inputLower.includes('white') || inputLower.includes('pest') || inputLower.includes('neem')) {
+        recList = products.filter(p => ['neem', 'fertilizer', 'spray'].some(name => p.title.toLowerCase().includes(name)));
+      } else if (inputLower.includes('yellow') || inputLower.includes('water') || inputLower.includes('soil')) {
+        recList = products.filter(p => ['soil', 'monstera', 'pothos'].some(name => p.title.toLowerCase().includes(name)));
+      }
+
+      setChatHistory((prev) => [
+        ...prev,
+        {
+          sender: 'doctor',
+          text: res.data.response,
+          products: recList.slice(0, 3)
+        }
+      ]);
+    } catch (err) {
+      console.warn('[AI Doctor API] Failed. Falling back to local offline diagnostics rules.', err.message);
+      
+      // Offline fallback rules
+      const inputLower = queryText.toLowerCase();
+      let replyKey = 'yellowing';
+      let matchLabel = 'general leaf stress';
+
+      if (inputLower.includes('brown') || inputLower.includes('dry') || inputLower.includes('crispy')) {
+        replyKey = 'brown-tips';
+        matchLabel = 'Dry / Brown Leaf Tips';
+      } else if (inputLower.includes('spot') || inputLower.includes('bug') || inputLower.includes('white') || inputLower.includes('pest')) {
+        replyKey = 'white-spots';
+        matchLabel = 'Pest or White Spots';
+      } else if (inputLower.includes('droop') || inputLower.includes('wilt') || inputLower.includes('hang')) {
+        replyKey = 'drooping';
+        matchLabel = 'Drooping stems';
+      } else if (inputLower.includes('yellow') || inputLower.includes('water')) {
+        replyKey = 'yellowing';
+        matchLabel = 'Yellow leaves';
+      }
+
+      const data = DIAGNOSIS_DB[replyKey];
+      const recommendedItems = products.filter(p =>
+        data.recs.some(name => p.title.toLowerCase().includes(name.toLowerCase()))
+      );
+
+      setChatHistory((prev) => [
+        ...prev,
+        {
+          sender: 'doctor',
+          text: `I've analyzed your description "${queryText}". Here's my diagnostic advice:`,
+          diagnosis: data.diagnosis,
+          prescription: data.prescription,
+          products: recommendedItems.length > 0 ? recommendedItems : products.slice(5, 8)
+        }
+      ]);
+    }
   };
 
   // Add Recommended Product to Cart
@@ -410,6 +497,48 @@ const PlantHub = () => {
     }
   };
 
+  // Add a new plant care reminder
+  const handleAddReminder = (e) => {
+    e.preventDefault();
+    const newRem = {
+      id: Date.now(),
+      plantName: newReminderPlant,
+      taskType: newReminderTask,
+      dueDate: new Date(Date.now() + 86400000 * newReminderDays).toLocaleDateString(),
+      completed: false
+    };
+    setCareReminders((prev) => [...prev, newRem]);
+  };
+
+  // Complete a plant care reminder
+  const handleCompleteReminder = (id) => {
+    setCareReminders((prev) =>
+      prev.map((rem) => {
+        if (rem.id === id) {
+          if (!rem.completed) {
+            setWateringCount((c) => c + 1); // Credit XP/points via wateringCount
+          }
+          return { ...rem, completed: true };
+        }
+        return rem;
+      })
+    );
+  };
+
+  // Delete a reminder
+  const handleDeleteReminder = (id) => {
+    setCareReminders((prev) => prev.filter((rem) => rem.id !== id));
+  };
+
+  // Custom room designer canvas background upload
+  const handleBgUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const url = URL.createObjectURL(file);
+      setCustomBgUrl(url);
+    }
+  };
+
   return (
     <div className={styles.container}>
       <div className={styles.titleSection}>
@@ -447,47 +576,199 @@ const PlantHub = () => {
               <button className={styles.btnAddPlant} onClick={() => setShowAddModal(true)}>+ Add Plant</button>
             </div>
 
-            <div className={styles.sillShelves}>
-              <div className={styles.shelfContainer}>
-                <div className={styles.shelfGrid}>
-                  {myPlants.length === 0 ? (
-                    <div style={{ gridColumn: '1/-1', color: 'var(--text-muted)', fontSize: '0.9rem', textAlign: 'center', padding: '2rem' }}>
-                      Sill is empty. Click "+ Add Plant" to place a plant on your windowsill!
-                    </div>
-                  ) : (
-                    myPlants.map((plant) => (
-                      <div key={plant.id} className={styles.plantCard}>
-                        <button className={styles.btnDeletePlant} title="Remove Plant" onClick={() => handleDeletePlant(plant.id)}>
-                          <FiTrash2 size={12} />
-                        </button>
-                        <img src={plant.image} alt={plant.name} className={styles.plantCardImage} />
-                        <div className={styles.plantCardName}>{plant.name}</div>
-                        <div className={styles.plantCardType}>{plant.type}</div>
-
-                        <div className={styles.moistureGauge}>
-                          <div
-                            className={styles.moistureFill}
-                            style={{
-                              width: `${plant.moisture}%`,
-                              backgroundColor: plant.moisture > 60 ? '#10b981' : plant.moisture > 30 ? '#f59e0b' : '#ef4444'
-                            }}
-                          ></div>
-                        </div>
-
-                        <div className={styles.moistureTextRow}>
-                          <span>Moisture</span>
-                          <span>{plant.moisture}%</span>
-                        </div>
-
-                        <button className={styles.btnWater} onClick={() => handleWaterPlant(plant.id)}>
-                          <FiDroplet /> Water
-                        </button>
-                      </div>
-                    ))
-                  )}
+            {/* Feature 1: Real-time weather banner */}
+            {weather && (
+              <div style={{
+                background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.08), rgba(59, 130, 246, 0.08))',
+                border: '1px solid rgba(16, 185, 129, 0.15)',
+                borderRadius: '12px',
+                padding: '1rem',
+                marginBottom: '1.5rem',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '1rem'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
+                  <span style={{ fontSize: '1.8rem' }}>🌡️</span>
+                  <div>
+                    <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: '700' }}>LOCAL WEATHER CARE REPORT</div>
+                    <div style={{ fontSize: '0.9rem', fontWeight: '600', color: 'white' }}>{weatherAlert}</div>
+                  </div>
                 </div>
-                <div className={styles.shelfWood}></div>
+                <div style={{ textAlign: 'right', minWidth: '100px' }}>
+                  <div style={{ fontSize: '1.5rem', fontWeight: '800', color: '#10b981' }}>{weather.temperature}°C</div>
+                  <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Wind: {weather.windspeed} km/h</div>
+                </div>
               </div>
+            )}
+
+            {/* Split layout: shelf and scheduler */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: '2rem', alignItems: 'start' }}>
+              
+              {/* Left Column: Windowsill Shelves */}
+              <div className={styles.sillShelves} style={{ margin: 0 }}>
+                <div className={styles.shelfContainer}>
+                  <div className={styles.shelfGrid} style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '1.5rem' }}>
+                    {myPlants.length === 0 ? (
+                      <div style={{ gridColumn: '1/-1', color: 'var(--text-muted)', fontSize: '0.9rem', textAlign: 'center', padding: '2rem' }}>
+                        Sill is empty. Click "+ Add Plant" to place a plant on your windowsill!
+                      </div>
+                    ) : (
+                      myPlants.map((plant) => (
+                        <div key={plant.id} className={styles.plantCard}>
+                          <button className={styles.btnDeletePlant} title="Remove Plant" onClick={() => handleDeletePlant(plant.id)}>
+                            <FiTrash2 size={12} />
+                          </button>
+                          <img src={plant.image} alt={plant.name} className={styles.plantCardImage} />
+                          <div className={styles.plantCardName}>{plant.name}</div>
+                          <div className={styles.plantCardType}>{plant.type}</div>
+
+                          <div className={styles.moistureGauge}>
+                            <div
+                              className={styles.moistureFill}
+                              style={{
+                                width: `${plant.moisture}%`,
+                                backgroundColor: plant.moisture > 60 ? '#10b981' : plant.moisture > 30 ? '#f59e0b' : '#ef4444'
+                              }}
+                            ></div>
+                          </div>
+
+                          <div className={styles.moistureTextRow}>
+                            <span>Moisture</span>
+                            <span>{plant.moisture}%</span>
+                          </div>
+
+                          <button className={styles.btnWater} onClick={() => handleWaterPlant(plant.id)}>
+                            <FiDroplet /> Water
+                          </button>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                  <div className={styles.shelfWood}></div>
+                </div>
+              </div>
+
+              {/* Right Column: Feature 4 Care Scheduler Panel */}
+              <div style={{
+                background: 'rgba(255, 255, 255, 0.02)',
+                border: '1px solid var(--card-border)',
+                borderRadius: '16px',
+                padding: '1.2rem',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '1rem'
+              }}>
+                <div style={{ fontSize: '1.1rem', fontWeight: '700', color: '#10b981', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                  📅 Care Scheduler &amp; Diary
+                </div>
+                
+                {/* Add new schedule reminder form */}
+                <form onSubmit={handleAddReminder} style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+                    <select
+                      value={newReminderPlant}
+                      onChange={(e) => setNewReminderPlant(e.target.value)}
+                      style={{ padding: '0.4rem', background: '#0f172a', border: '1px solid var(--card-border)', color: 'white', borderRadius: '6px', fontSize: '0.8rem' }}
+                    >
+                      {myPlants.map(p => (
+                        <option key={p.id} value={p.name}>{p.name}</option>
+                      ))}
+                      {myPlants.length === 0 && <option value="My Plant">My Plant</option>}
+                    </select>
+
+                    <select
+                      value={newReminderTask}
+                      onChange={(e) => setNewReminderTask(e.target.value)}
+                      style={{ padding: '0.4rem', background: '#0f172a', border: '1px solid var(--card-border)', color: 'white', borderRadius: '6px', fontSize: '0.8rem' }}
+                    >
+                      <option value="Watering">Watering 💧</option>
+                      <option value="Fertilizing">Fertilizing 🧪</option>
+                      <option value="Repotting">Repotting 🪴</option>
+                      <option value="Leaf Cleaning">Leaf Wash 🧼</option>
+                    </select>
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem' }}>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Repeat every (days):</span>
+                    <input
+                      type="number"
+                      min="1"
+                      max="30"
+                      value={newReminderDays}
+                      onChange={(e) => setNewReminderDays(Number(e.target.value))}
+                      style={{ width: '50px', padding: '0.3rem', background: '#0f172a', border: '1px solid var(--card-border)', color: 'white', borderRadius: '6px', fontSize: '0.8rem', textAlign: 'center' }}
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    style={{ padding: '0.45rem', background: '#10b981', color: 'white', border: 'none', borderRadius: '6px', fontSize: '0.8rem', fontWeight: '700', cursor: 'pointer' }}
+                  >
+                    + Add Task
+                  </button>
+                </form>
+
+                <div style={{ borderTop: '1px solid var(--card-border)', paddingTop: '0.8rem' }}>
+                  <div style={{ fontSize: '0.8rem', fontWeight: '700', color: 'var(--text-muted)', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    Active Checklist
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', maxHeight: '180px', overflowY: 'auto' }}>
+                    {careReminders.length === 0 ? (
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textAlign: 'center', padding: '1rem' }}>
+                        No pending care reminders.
+                      </div>
+                    ) : (
+                      careReminders.map(rem => (
+                        <div
+                          key={rem.id}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            background: 'rgba(255, 255, 255, 0.01)',
+                            border: '1px solid var(--card-border)',
+                            borderRadius: '8px',
+                            padding: '0.5rem 0.75rem',
+                            opacity: rem.completed ? 0.6 : 1
+                          }}
+                        >
+                          <div style={{ display: 'flex', flexDirection: 'column' }}>
+                            <span style={{ fontSize: '0.8rem', fontWeight: '700', textDecoration: rem.completed ? 'line-through' : 'none' }}>
+                              {rem.plantName} - {rem.taskType}
+                            </span>
+                            <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>
+                              Due: {rem.dueDate}
+                            </span>
+                          </div>
+
+                          <div style={{ display: 'flex', gap: '0.3rem' }}>
+                            {!rem.completed ? (
+                              <button
+                                onClick={() => handleCompleteReminder(rem.id)}
+                                style={{ padding: '0.2rem 0.4rem', background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', border: '1px solid rgba(16, 185, 129, 0.2)', borderRadius: '4px', fontSize: '0.7rem', cursor: 'pointer', fontWeight: '600' }}
+                              >
+                                Done
+                              </button>
+                            ) : (
+                              <span style={{ fontSize: '0.7rem', color: '#10b981', fontWeight: '700' }}>✓ Logged</span>
+                            )}
+                            <button
+                              onClick={() => handleDeleteReminder(rem.id)}
+                              style={{ padding: '0.2rem 0.4rem', background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.2)', borderRadius: '4px', fontSize: '0.7rem', cursor: 'pointer' }}
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              </div>
+
             </div>
           </div>
         )}
@@ -849,9 +1130,54 @@ const PlantHub = () => {
             <div className={styles.canvasWrapper}>
               <div className={styles.canvasHeader}>
                 <div className={styles.sillTitle}>🏠 Interactive Room Canvas</div>
-                <div className={styles.canvasTools}>
+                <div className={styles.canvasTools} style={{ flexWrap: 'wrap', gap: '0.8rem' }}>
+                  
+                  {/* Custom BG Uploader */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      id="room-bg-uploader"
+                      onChange={handleBgUpload}
+                      style={{ display: 'none' }}
+                    />
+                    <label
+                      htmlFor="room-bg-uploader"
+                      style={{
+                        padding: '0.4rem 0.8rem',
+                        background: 'rgba(255, 255, 255, 0.05)',
+                        border: '1px solid var(--card-border)',
+                        borderRadius: '6px',
+                        fontSize: '0.75rem',
+                        cursor: 'pointer',
+                        fontWeight: '600',
+                        color: 'white',
+                        display: 'inline-block'
+                      }}
+                    >
+                      🖼️ Upload Room
+                    </label>
+                    {customBgUrl && (
+                      <button
+                        onClick={() => setCustomBgUrl('')}
+                        style={{
+                          background: 'rgba(239, 68, 68, 0.1)',
+                          border: '1px solid rgba(239, 68, 68, 0.2)',
+                          color: '#ef4444',
+                          fontSize: '0.75rem',
+                          borderRadius: '4px',
+                          padding: '0.2rem 0.4rem',
+                          cursor: 'pointer',
+                          fontWeight: '600'
+                        }}
+                      >
+                        Reset
+                      </button>
+                    )}
+                  </div>
+
                   <div className={styles.toolSliderGroup}>
-                    <span>Scale Active:</span>
+                    <span>Scale:</span>
                     <input
                       type="range"
                       min="40"
@@ -877,7 +1203,9 @@ const PlantHub = () => {
               <div
                 ref={canvasRef}
                 className={styles.designerCanvas}
-                style={{ backgroundImage: `url('https://images.unsplash.com/photo-1513694203232-719a280e022f?q=80&w=800&auto=format&fit=crop')` }}
+                style={{
+                  backgroundImage: `url('${customBgUrl || 'https://images.unsplash.com/photo-1513694203232-719a280e022f?q=80&w=800&auto=format&fit=crop'}')`
+                }}
               >
                 {placedPlants.length === 0 && (
                   <div className={styles.canvasPlaceholder}>
